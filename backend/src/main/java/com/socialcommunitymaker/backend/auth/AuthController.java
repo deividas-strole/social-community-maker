@@ -81,4 +81,32 @@ public class AuthController {
                 UserResponse.from(user)
         );
     }
+
+    @GetMapping("/me")
+    public UserResponse me(@RequestHeader("Authorization") String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Missing or invalid Authorization header"
+            );
+        }
+
+        String token = authorizationHeader.substring(7);
+        String email = jwtService.extractEmail(token);
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid token"
+                ));
+
+        if (!jwtService.isTokenValid(token, user)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid or expired token"
+            );
+        }
+
+        return UserResponse.from(user);
+    }
 }
