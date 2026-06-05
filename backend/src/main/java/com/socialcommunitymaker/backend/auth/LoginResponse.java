@@ -1,7 +1,8 @@
 package com.socialcommunitymaker.backend.auth;
 
 public record LoginResponse(
-        String message,
+        String token,
+        String tokenType,
         UserResponse user
 ) {
 }
