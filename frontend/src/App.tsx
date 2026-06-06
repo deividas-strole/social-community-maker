@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import CreateCommunityPage from './pages/CreateCommunityPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/create-community" element={<CreateCommunityPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
