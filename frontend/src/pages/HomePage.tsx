@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -16,19 +18,19 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <a
-            href="#"
+          <Link
+            to="/register"
             className="rounded-lg bg-white px-6 py-3 font-semibold text-slate-950 hover:bg-slate-200"
           >
             Get Started
-          </a>
+          </Link>
 
-          <a
-            href="#"
+          <Link
+            to="/login"
             className="rounded-lg border border-slate-700 px-6 py-3 font-semibold text-white hover:bg-slate-900"
           >
-            View Communities
-          </a>
+            Log In
+          </Link>
         </div>
       </section>
     </main>
