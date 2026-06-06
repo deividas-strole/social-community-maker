@@ -146,7 +146,12 @@ export default function DashboardPage() {
                 >
                   <div className="flex flex-col justify-between gap-3 sm:flex-row">
                     <div>
-                      <h3 className="text-lg font-semibold">{community.name}</h3>
+                      <Link
+                        to={`/communities/${community.slug}`}
+                        className="text-lg font-semibold hover:underline"
+                      >
+                        {community.name}
+                      </Link>
                       <p className="mt-1 text-sm text-slate-400">/communities/{community.slug}</p>
                       {community.description && (
                         <p className="mt-3 text-slate-300">{community.description}</p>
