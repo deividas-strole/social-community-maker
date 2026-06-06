@@ -8,6 +8,7 @@ import com.socialcommunitymaker.backend.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.socialcommunitymaker.backend.community.CommunityMemberRepository;
 
 import java.util.List;
 
@@ -18,17 +19,19 @@ public class PostService {
     private final CommunityRepository communityRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final CommunityMemberRepository communityMemberRepository;
 
     public PostService(
             PostRepository postRepository,
             CommunityRepository communityRepository,
             UserRepository userRepository,
-            JwtService jwtService
+            JwtService jwtService, CommunityMemberRepository communityMemberRepository
     ) {
         this.postRepository = postRepository;
         this.communityRepository = communityRepository;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.communityMemberRepository = communityMemberRepository;
     }
 
     public PostResponse createPost(
@@ -43,6 +46,13 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "Community not found"
                 ));
+
+        if (!communityMemberRepository.existsByCommunityAndUser(community, currentUser)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only community members can create posts"
+            );
+        }
 
         String content = request.content().trim();
 
