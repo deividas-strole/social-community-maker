@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Community, CreateCommunityRequest } from '../types/community'
+import type { Community, CreateCommunityRequest, MyCommunitiesResponse } from '../types/community'
 
 const API_BASE_URL = 'http://localhost:8080/api'
 
@@ -25,10 +25,10 @@ export async function createCommunity(data: CreateCommunityRequest): Promise<Com
   return response.data
 }
 
-export async function getMyCommunities(): Promise<Community[]> {
+export async function getMyCommunities(): Promise<MyCommunitiesResponse> {
   const token = getAuthToken()
 
-  const response = await axios.get<Community[]>(`${API_BASE_URL}/communities/me`, {
+  const response = await axios.get<MyCommunitiesResponse>(`${API_BASE_URL}/communities/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -43,6 +43,39 @@ export async function getPublicCommunities(): Promise<Community[]> {
 }
 
 export async function getCommunityBySlug(slug: string): Promise<Community> {
-  const response = await axios.get<Community>(`${API_BASE_URL}/communities/${slug}`)
+  const token = localStorage.getItem('token')
+
+  const response = await axios.get<Community>(`${API_BASE_URL}/communities/${slug}`, {
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : undefined,
+  })
+
   return response.data
+}
+
+export async function joinCommunity(communityId: number): Promise<void> {
+  const token = getAuthToken()
+
+  await axios.post(
+    `${API_BASE_URL}/communities/${communityId}/join`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+}
+
+export async function leaveCommunity(communityId: number): Promise<void> {
+  const token = getAuthToken()
+
+  await axios.delete(`${API_BASE_URL}/communities/${communityId}/leave`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 }

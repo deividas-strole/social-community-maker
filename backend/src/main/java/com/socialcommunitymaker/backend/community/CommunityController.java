@@ -31,14 +31,35 @@ public class CommunityController {
     }
 
     @GetMapping("/{slug}")
-    public CommunityResponse getCommunityBySlug(@PathVariable String slug) {
-        return communityService.getCommunityBySlug(slug);
+    public CommunityResponse getCommunityBySlug(
+            @PathVariable String slug,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader
+    ) {
+        return communityService.getCommunityBySlug(slug, authorizationHeader);
     }
 
     @GetMapping("/me")
-    public List<CommunityResponse> getMyCommunities(
+    public MyCommunitiesResponse getMyCommunities(
             @RequestHeader("Authorization") String authorizationHeader
     ) {
         return communityService.getMyCommunities(authorizationHeader);
+    }
+
+    @PostMapping("/{communityId}/join")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommunityMembershipResponse joinCommunity(
+            @PathVariable Long communityId,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        return communityService.joinCommunity(communityId, authorizationHeader);
+    }
+
+    @DeleteMapping("/{communityId}/leave")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void leaveCommunity(
+            @PathVariable Long communityId,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        communityService.leaveCommunity(communityId, authorizationHeader);
     }
 }

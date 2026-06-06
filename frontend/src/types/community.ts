@@ -1,6 +1,7 @@
 import type { User } from './auth'
 
 export type CommunityVisibility = 'PUBLIC' | 'PRIVATE' | 'INVITE_ONLY'
+export type CommunityRole = 'OWNER' | 'ADMIN' | 'MEMBER'
 
 export type CreateCommunityRequest = {
   name: string
@@ -18,6 +19,13 @@ export type Community = {
   description: string | null
   visibility: CommunityVisibility
   owner: CommunityOwner
+  currentUserIsMember: boolean | null
+  currentUserRole: CommunityRole | null
   createdAt: string
   updatedAt: string
+}
+
+export type MyCommunitiesResponse = {
+  ownedCommunities: Community[]
+  joinedCommunities: Community[]
 }

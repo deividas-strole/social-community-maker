@@ -9,7 +9,8 @@ export default function DashboardPage() {
   const navigate = useNavigate()
 
   const [user, setUser] = useState<User | null>(null)
-  const [communities, setCommunities] = useState<Community[]>([])
+  const [ownedCommunities, setOwnedCommunities] = useState<Community[]>([])
+  const [joinedCommunities, setJoinedCommunities] = useState<Community[]>([])
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -29,8 +30,9 @@ export default function DashboardPage() {
         ])
 
         setUser(currentUser)
-        setCommunities(myCommunities)
-      } catch (err) {
+        setOwnedCommunities(myCommunities.ownedCommunities)
+        setJoinedCommunities(myCommunities.joinedCommunities)
+      } catch {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         setError('Session expired. Please log in again.')
@@ -95,27 +97,27 @@ export default function DashboardPage() {
         <div className="mb-8 grid gap-6 md:grid-cols-3">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">Owned Communities</h2>
-            <p className="mt-3 text-3xl font-bold">{communities.length}</p>
+            <p className="mt-3 text-3xl font-bold">{ownedCommunities.length}</p>
             <p className="mt-2 text-sm text-slate-400">Communities you created.</p>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">Joined Communities</h2>
-            <p className="mt-3 text-3xl font-bold">0</p>
-            <p className="mt-2 text-sm text-slate-400">Membership features coming soon.</p>
+            <p className="mt-3 text-3xl font-bold">{joinedCommunities.length}</p>
+            <p className="mt-2 text-sm text-slate-400">Communities you joined.</p>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">Posts</h2>
             <p className="mt-3 text-3xl font-bold">0</p>
-            <p className="mt-2 text-sm text-slate-400">Posting features coming soon.</p>
+            <p className="mt-2 text-sm text-slate-400">Posting analytics coming soon.</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">Your Communities</h2>
+              <h2 className="text-xl font-semibold">Owned Communities</h2>
               <p className="mt-1 text-sm text-slate-400">Communities you have created.</p>
             </div>
 
@@ -127,9 +129,9 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {communities.length === 0 ? (
+          {ownedCommunities.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center">
-              <p className="text-slate-300">No communities yet.</p>
+              <p className="text-slate-300">No owned communities yet.</p>
               <Link
                 to="/create-community"
                 className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200"
@@ -139,7 +141,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {communities.map((community) => (
+              {ownedCommunities.map((community) => (
                 <div
                   key={community.id}
                   className="rounded-xl border border-slate-800 bg-slate-950 p-5"
@@ -160,6 +162,57 @@ export default function DashboardPage() {
 
                     <span className="h-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
                       {community.visibility}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold">Joined Communities</h2>
+              <p className="mt-1 text-sm text-slate-400">Communities you joined as a member.</p>
+            </div>
+
+            <Link
+              to="/communities"
+              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Browse
+            </Link>
+          </div>
+
+          {joinedCommunities.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center">
+              <p className="text-slate-300">No joined communities yet.</p>
+              <p className="mt-2 text-sm text-slate-500">Browse public communities and join one.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {joinedCommunities.map((community) => (
+                <div
+                  key={community.id}
+                  className="rounded-xl border border-slate-800 bg-slate-950 p-5"
+                >
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row">
+                    <div>
+                      <Link
+                        to={`/communities/${community.slug}`}
+                        className="text-lg font-semibold hover:underline"
+                      >
+                        {community.name}
+                      </Link>
+                      <p className="mt-1 text-sm text-slate-400">/communities/{community.slug}</p>
+                      {community.description && (
+                        <p className="mt-3 text-slate-300">{community.description}</p>
+                      )}
+                    </div>
+
+                    <span className="h-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
+                      {community.currentUserRole || community.visibility}
                     </span>
                   </div>
                 </div>

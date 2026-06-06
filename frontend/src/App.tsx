@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CreateCommunityPage from './pages/CreateCommunityPage'
 import CommunityPage from './pages/CommunityPage'
+import CommunitiesPage from './pages/CommunitiesPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/communities/:slug" element={<CommunityPage />} />
 
         <Route element={<ProtectedRoute />}>
