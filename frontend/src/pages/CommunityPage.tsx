@@ -165,7 +165,9 @@ export default function CommunityPage() {
 
     try {
       await deletePost(postId)
+
       setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
+
       setCommentsByPostId((currentComments) => {
         const updatedComments = { ...currentComments }
         delete updatedComments[postId]
@@ -307,15 +309,17 @@ export default function CommunityPage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        Loading community...
+      <main className="flex min-h-[calc(100vh-73px)] items-center justify-center px-6">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 px-6 py-5 text-slate-300">
+          Loading community...
+        </div>
       </main>
     )
   }
 
   if (error || !community) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <main className="min-h-[calc(100vh-73px)] px-6 py-10">
         <section className="mx-auto max-w-3xl">
           <Link className="text-sm text-slate-400 underline hover:text-white" to="/dashboard">
             ← Back to dashboard
@@ -330,55 +334,130 @@ export default function CommunityPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto max-w-5xl">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex gap-4">
-            <Link className="text-sm text-slate-400 underline hover:text-white" to="/dashboard">
-              ← Dashboard
-            </Link>
+    <main className="min-h-[calc(100vh-73px)] px-6 py-10">
+      <section className="mx-auto max-w-6xl">
+        <PageLinks />
 
-            <Link className="text-sm text-slate-400 underline hover:text-white" to="/communities">
-              Browse communities
-            </Link>
+        <CommunityHeader
+          community={community}
+          isLoggedIn={isLoggedIn}
+          isMember={isMember}
+          isOwner={isOwner}
+          membershipError={membershipError}
+          isMembershipLoading={isMembershipLoading}
+          onJoin={handleJoinCommunity}
+          onLeave={handleLeaveCommunity}
+        />
+
+        <CreatePostPanel
+          canCreatePost={canCreatePost}
+          isLoggedIn={isLoggedIn}
+          postContent={postContent}
+          postError={postError}
+          isSubmittingPost={isSubmittingPost}
+          onPostContentChange={setPostContent}
+          onCreatePost={handleCreatePost}
+        />
+
+        <FeedPanel
+          posts={posts}
+          commentsByPostId={commentsByPostId}
+          commentInputs={commentInputs}
+          commentError={commentError}
+          canCreatePost={canCreatePost}
+          isSubmittingCommentPostId={isSubmittingCommentPostId}
+          canDeletePost={canDeletePost}
+          canDeleteComment={canDeleteComment}
+          onToggleLike={handleToggleLike}
+          onDeletePost={handleDeletePost}
+          onCommentInputChange={handleCommentInputChange}
+          onCreateComment={handleCreateComment}
+          onDeleteComment={handleDeleteComment}
+        />
+      </section>
+    </main>
+  )
+}
+
+function PageLinks() {
+  return (
+    <div className="mb-8 flex flex-wrap gap-4">
+      <Link className="text-sm text-slate-400 underline hover:text-white" to="/dashboard">
+        ← Dashboard
+      </Link>
+
+      <Link className="text-sm text-slate-400 underline hover:text-white" to="/communities">
+        Browse communities
+      </Link>
+    </div>
+  )
+}
+
+type CommunityHeaderProps = {
+  community: Community
+  isLoggedIn: boolean
+  isMember: boolean
+  isOwner: boolean
+  membershipError: string
+  isMembershipLoading: boolean
+  onJoin: () => void
+  onLeave: () => void
+}
+
+function CommunityHeader({
+  community,
+  isLoggedIn,
+  isMember,
+  isOwner,
+  membershipError,
+  isMembershipLoading,
+  onJoin,
+  onLeave,
+}: CommunityHeaderProps) {
+  return (
+    <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
+      <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Community</p>
+
+            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
+              {community.visibility}
+            </span>
           </div>
 
-          <span className="w-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
-            {community.visibility}
-          </span>
-        </div>
+          <h1 className="mt-4 text-4xl font-bold tracking-tight">{community.name}</h1>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Community</p>
-
-          <h1 className="mt-3 text-4xl font-bold">{community.name}</h1>
-
-          <p className="mt-2 text-sm text-slate-400">/communities/{community.slug}</p>
+          <p className="mt-2 font-mono text-sm text-slate-500">/communities/{community.slug}</p>
 
           {community.description && (
-            <p className="mt-6 max-w-3xl text-lg text-slate-300">{community.description}</p>
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
+              {community.description}
+            </p>
           )}
+        </div>
 
-          <div className="mt-8 flex flex-col justify-between gap-4 rounded-xl border border-slate-800 bg-slate-950 p-5 sm:flex-row sm:items-center">
-            <div>
-              <p className="text-sm text-slate-400">Created by</p>
-              <p className="mt-1 font-semibold">{community.owner.displayName}</p>
-              <p className="text-sm text-slate-500">@{community.owner.username}</p>
-            </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 lg:min-w-72">
+          <p className="text-sm text-slate-400">Created by</p>
+          <p className="mt-1 font-semibold">{community.owner.displayName}</p>
+          <p className="text-sm text-slate-500">@{community.owner.username}</p>
 
-            <div className="flex flex-col gap-3 sm:items-end">
-              {community.currentUserRole && (
-                <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
-                  Your role: {community.currentUserRole}
-                </span>
-              )}
+          <div className="mt-5 border-t border-slate-800 pt-5">
+            {community.currentUserRole ? (
+              <span className="inline-block rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
+                Your role: {community.currentUserRole}
+              </span>
+            ) : (
+              <p className="text-sm text-slate-500">You are not a member yet.</p>
+            )}
 
-              {membershipError && <p className="text-sm text-red-300">{membershipError}</p>}
+            {membershipError && <p className="mt-3 text-sm text-red-300">{membershipError}</p>}
 
+            <div className="mt-4">
               {!isLoggedIn && (
                 <Link
                   to="/login"
-                  className="rounded-lg bg-white px-5 py-3 text-center font-semibold text-slate-950 hover:bg-slate-200"
+                  className="block rounded-lg bg-white px-5 py-3 text-center font-semibold text-slate-950 hover:bg-slate-200"
                 >
                   Log in to join
                 </Link>
@@ -386,8 +465,8 @@ export default function CommunityPage() {
 
               {isLoggedIn && !isMember && community.visibility === 'PUBLIC' && (
                 <button
-                  onClick={handleJoinCommunity}
-                  className="rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={onJoin}
+                  className="w-full rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isMembershipLoading}
                 >
                   {isMembershipLoading ? 'Joining...' : 'Join Community'}
@@ -396,206 +475,332 @@ export default function CommunityPage() {
 
               {isLoggedIn && isMember && !isOwner && (
                 <button
-                  onClick={handleLeaveCommunity}
-                  className="rounded-lg border border-slate-700 px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={onLeave}
+                  className="w-full rounded-lg border border-slate-700 px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isMembershipLoading}
                 >
                   {isMembershipLoading ? 'Leaving...' : 'Leave Community'}
                 </button>
               )}
+
+              {isLoggedIn && isOwner && (
+                <p className="text-sm text-slate-400">You own this community.</p>
+              )}
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
 
-        <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold">Create Post</h2>
+type CreatePostPanelProps = {
+  canCreatePost: boolean
+  isLoggedIn: boolean
+  postContent: string
+  postError: string
+  isSubmittingPost: boolean
+  onPostContentChange: (value: string) => void
+  onCreatePost: (event: { preventDefault: () => void }) => void
+}
 
-          {canCreatePost ? (
-            <form onSubmit={handleCreatePost} className="mt-4">
-              {postError && (
-                <div className="mb-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
-                  {postError}
+function CreatePostPanel({
+  canCreatePost,
+  isLoggedIn,
+  postContent,
+  postError,
+  isSubmittingPost,
+  onPostContentChange,
+  onCreatePost,
+}: CreatePostPanelProps) {
+  return (
+    <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <h2 className="text-xl font-semibold">Start a discussion</h2>
+      <p className="mt-1 text-sm text-slate-400">
+        Share an update, question, or idea with this community.
+      </p>
+
+      {canCreatePost ? (
+        <form onSubmit={onCreatePost} className="mt-5">
+          {postError && (
+            <div className="mb-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
+              {postError}
+            </div>
+          )}
+
+          <textarea
+            className="min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
+            value={postContent}
+            onChange={(event) => onPostContentChange(event.target.value)}
+            placeholder="Share something with the community..."
+          />
+
+          <button
+            className="mt-4 rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            disabled={isSubmittingPost}
+          >
+            {isSubmittingPost ? 'Posting...' : 'Create Post'}
+          </button>
+        </form>
+      ) : (
+        <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950 p-5">
+          <p className="text-slate-300">
+            {isLoggedIn
+              ? 'Join this community to create posts, comments, and likes.'
+              : 'Log in to participate in this community.'}
+          </p>
+
+          {!isLoggedIn && (
+            <Link
+              to="/login"
+              className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200"
+            >
+              Log in
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type FeedPanelProps = {
+  posts: Post[]
+  commentsByPostId: Record<number, Comment[]>
+  commentInputs: Record<number, string>
+  commentError: string
+  canCreatePost: boolean
+  isSubmittingCommentPostId: number | null
+  canDeletePost: (post: Post) => boolean
+  canDeleteComment: (comment: Comment) => boolean
+  onToggleLike: (post: Post) => void
+  onDeletePost: (postId: number) => void
+  onCommentInputChange: (postId: number, value: string) => void
+  onCreateComment: (postId: number, event: { preventDefault: () => void }) => void
+  onDeleteComment: (postId: number, commentId: number) => void
+}
+
+function FeedPanel({
+  posts,
+  commentsByPostId,
+  commentInputs,
+  commentError,
+  canCreatePost,
+  isSubmittingCommentPostId,
+  canDeletePost,
+  canDeleteComment,
+  onToggleLike,
+  onDeletePost,
+  onCommentInputChange,
+  onCreateComment,
+  onDeleteComment,
+}: FeedPanelProps) {
+  return (
+    <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <h2 className="text-xl font-semibold">Posts</h2>
+      <p className="mt-1 text-sm text-slate-400">Follow discussions from this community.</p>
+
+      {commentError && (
+        <div className="mt-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
+          {commentError}
+        </div>
+      )}
+
+      {posts.length === 0 ? (
+        <div className="mt-5 rounded-xl border border-dashed border-slate-700 bg-slate-950 p-8 text-center">
+          <p className="text-slate-300">No posts yet.</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Members can start the first discussion in this community.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-5">
+          {posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              comments={commentsByPostId[post.id] || []}
+              commentInput={commentInputs[post.id] || ''}
+              canCreatePost={canCreatePost}
+              isSubmittingComment={isSubmittingCommentPostId === post.id}
+              canDeletePost={canDeletePost(post)}
+              canDeleteComment={canDeleteComment}
+              onToggleLike={() => onToggleLike(post)}
+              onDeletePost={() => onDeletePost(post.id)}
+              onCommentInputChange={(value) => onCommentInputChange(post.id, value)}
+              onCreateComment={(event) => onCreateComment(post.id, event)}
+              onDeleteComment={(commentId) => onDeleteComment(post.id, commentId)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type PostCardProps = {
+  post: Post
+  comments: Comment[]
+  commentInput: string
+  canCreatePost: boolean
+  isSubmittingComment: boolean
+  canDeletePost: boolean
+  canDeleteComment: (comment: Comment) => boolean
+  onToggleLike: () => void
+  onDeletePost: () => void
+  onCommentInputChange: (value: string) => void
+  onCreateComment: (event: { preventDefault: () => void }) => void
+  onDeleteComment: (commentId: number) => void
+}
+
+function PostCard({
+  post,
+  comments,
+  commentInput,
+  canCreatePost,
+  isSubmittingComment,
+  canDeletePost,
+  canDeleteComment,
+  onToggleLike,
+  onDeletePost,
+  onCommentInputChange,
+  onCreateComment,
+  onDeleteComment,
+}: PostCardProps) {
+  return (
+    <article className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row">
+        <div>
+          <p className="font-semibold">{post.author.displayName}</p>
+          <p className="text-sm text-slate-500">@{post.author.username}</p>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <span className="text-xs text-slate-500">
+            {new Date(post.createdAt).toLocaleString()}
+          </span>
+
+          {canDeletePost && (
+            <button
+              onClick={onDeletePost}
+              className="text-xs font-semibold text-red-300 hover:text-red-200"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
+
+      <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
+        <button
+          onClick={onToggleLike}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+            post.likedByCurrentUser
+              ? 'border-white bg-white text-slate-950'
+              : 'border-slate-700 text-slate-300 hover:bg-slate-900'
+          }`}
+          type="button"
+        >
+          {post.likedByCurrentUser ? 'Liked' : 'Like'} · {post.likeCount}
+        </button>
+
+        <span>{comments.length} comments</span>
+      </div>
+
+      <CommentSection
+        comments={comments}
+        commentInput={commentInput}
+        canCreatePost={canCreatePost}
+        isSubmittingComment={isSubmittingComment}
+        canDeleteComment={canDeleteComment}
+        onCommentInputChange={onCommentInputChange}
+        onCreateComment={onCreateComment}
+        onDeleteComment={onDeleteComment}
+      />
+    </article>
+  )
+}
+
+type CommentSectionProps = {
+  comments: Comment[]
+  commentInput: string
+  canCreatePost: boolean
+  isSubmittingComment: boolean
+  canDeleteComment: (comment: Comment) => boolean
+  onCommentInputChange: (value: string) => void
+  onCreateComment: (event: { preventDefault: () => void }) => void
+  onDeleteComment: (commentId: number) => void
+}
+
+function CommentSection({
+  comments,
+  commentInput,
+  canCreatePost,
+  isSubmittingComment,
+  canDeleteComment,
+  onCommentInputChange,
+  onCreateComment,
+  onDeleteComment,
+}: CommentSectionProps) {
+  return (
+    <div className="mt-5 border-t border-slate-800 pt-5">
+      <h3 className="text-sm font-semibold text-slate-300">Comments</h3>
+
+      {comments.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">No comments yet.</p>
+      ) : (
+        <div className="mt-4 grid gap-3">
+          {comments.map((comment) => (
+            <div key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+              <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                <div>
+                  <p className="text-sm font-semibold">{comment.author.displayName}</p>
+                  <p className="text-xs text-slate-500">@{comment.author.username}</p>
                 </div>
-              )}
 
-              <textarea
-                className="min-h-32 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-white"
-                value={postContent}
-                onChange={(event) => setPostContent(event.target.value)}
-                placeholder="Share something with the community..."
-              />
+                <div className="flex items-start gap-3">
+                  <span className="text-xs text-slate-500">
+                    {new Date(comment.createdAt).toLocaleString()}
+                  </span>
 
-              <button
-                className="mt-4 rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-                type="submit"
-                disabled={isSubmittingPost}
-              >
-                {isSubmittingPost ? 'Posting...' : 'Create Post'}
-              </button>
-            </form>
-          ) : (
-            <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-5">
-              <p className="text-slate-300">
-                {isLoggedIn
-                  ? 'Join this community to create posts.'
-                  : 'Log in to create posts in this community.'}
-              </p>
+                  {canDeleteComment(comment) && (
+                    <button
+                      onClick={() => onDeleteComment(comment.id)}
+                      className="text-xs font-semibold text-red-300 hover:text-red-200"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
 
-              {!isLoggedIn && (
-                <Link
-                  to="/login"
-                  className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200"
-                >
-                  Log in
-                </Link>
-              )}
+              <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">{comment.content}</p>
             </div>
-          )}
+          ))}
         </div>
+      )}
 
-        <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold">Community Feed</h2>
+      {canCreatePost && (
+        <form onSubmit={onCreateComment} className="mt-4">
+          <textarea
+            className="min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
+            value={commentInput}
+            onChange={(event) => onCommentInputChange(event.target.value)}
+            placeholder="Write a comment..."
+          />
 
-          {commentError && (
-            <div className="mt-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
-              {commentError}
-            </div>
-          )}
-
-          {posts.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-slate-700 p-8 text-center">
-              <p className="text-slate-300">No posts yet.</p>
-              <p className="mt-2 text-sm text-slate-500">Be the first to start a discussion.</p>
-            </div>
-          ) : (
-            <div className="mt-5 grid gap-4">
-              {posts.map((post) => {
-                const postComments = commentsByPostId[post.id] || []
-
-                return (
-                  <article
-                    key={post.id}
-                    className="rounded-xl border border-slate-800 bg-slate-950 p-5"
-                  >
-                    <div className="flex flex-col justify-between gap-3 sm:flex-row">
-                      <div>
-                        <p className="font-semibold">{post.author.displayName}</p>
-                        <p className="text-sm text-slate-500">@{post.author.username}</p>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <span className="text-xs text-slate-500">
-                          {new Date(post.createdAt).toLocaleString()}
-                        </span>
-
-                        {canDeletePost(post) && (
-                          <button
-                            onClick={() => handleDeletePost(post.id)}
-                            className="text-xs font-semibold text-red-300 hover:text-red-200"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
-
-                    <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
-                      <button
-                        onClick={() => handleToggleLike(post)}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold ${
-                          post.likedByCurrentUser
-                            ? 'border-white bg-white text-slate-950'
-                            : 'border-slate-700 text-slate-300 hover:bg-slate-900'
-                        }`}
-                        type="button"
-                      >
-                        {post.likedByCurrentUser ? 'Liked' : 'Like'} · {post.likeCount}
-                      </button>
-
-                      <span>{postComments.length} comments</span>
-                    </div>
-
-                    <div className="mt-5 border-t border-slate-800 pt-5">
-                      <h3 className="text-sm font-semibold text-slate-300">Comments</h3>
-
-                      {postComments.length === 0 ? (
-                        <p className="mt-3 text-sm text-slate-500">No comments yet.</p>
-                      ) : (
-                        <div className="mt-4 grid gap-3">
-                          {postComments.map((comment) => (
-                            <div
-                              key={comment.id}
-                              className="rounded-lg border border-slate-800 bg-slate-900 p-4"
-                            >
-                              <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                                <div>
-                                  <p className="text-sm font-semibold">
-                                    {comment.author.displayName}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    @{comment.author.username}
-                                  </p>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                  <span className="text-xs text-slate-500">
-                                    {new Date(comment.createdAt).toLocaleString()}
-                                  </span>
-
-                                  {canDeleteComment(comment) && (
-                                    <button
-                                      onClick={() => handleDeleteComment(post.id, comment.id)}
-                                      className="text-xs font-semibold text-red-300 hover:text-red-200"
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-
-                              <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">
-                                {comment.content}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {canCreatePost && (
-                        <form
-                          onSubmit={(event) => handleCreateComment(post.id, event)}
-                          className="mt-4"
-                        >
-                          <textarea
-                            className="min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
-                            value={commentInputs[post.id] || ''}
-                            onChange={(event) =>
-                              handleCommentInputChange(post.id, event.target.value)
-                            }
-                            placeholder="Write a comment..."
-                          />
-
-                          <button
-                            className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-                            type="submit"
-                            disabled={isSubmittingCommentPostId === post.id}
-                          >
-                            {isSubmittingCommentPostId === post.id
-                              ? 'Commenting...'
-                              : 'Add Comment'}
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
+          <button
+            className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            disabled={isSubmittingComment}
+          >
+            {isSubmittingComment ? 'Commenting...' : 'Add Comment'}
+          </button>
+        </form>
+      )}
+    </div>
   )
 }
