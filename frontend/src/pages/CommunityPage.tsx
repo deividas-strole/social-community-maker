@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { getCommunityBySlug, joinCommunity, leaveCommunity } from '../api/communityApi'
-import { createPost, deletePost, getCommunityPosts } from '../api/postApi'
+import { createPost, deletePost, getCommunityPosts, likePost, unlikePost } from '../api/postApi'
 import { createComment, deleteComment, getPostComments } from '../api/commentApi'
 import type { Community } from '../types/community'
 import type { Post } from '../types/post'
@@ -173,6 +173,38 @@ export default function CommunityPage() {
       })
     } catch {
       setPostError('Post could not be deleted.')
+    }
+  }
+
+  const handleToggleLike = async (post: Post) => {
+    if (!currentUser) {
+      setPostError('Please log in to like posts.')
+      return
+    }
+
+    if (!community?.currentUserIsMember) {
+      setPostError('Join this community to like posts.')
+      return
+    }
+
+    try {
+      const likeResponse = post.likedByCurrentUser
+        ? await unlikePost(post.id)
+        : await likePost(post.id)
+
+      setPosts((currentPosts) =>
+        currentPosts.map((currentPost) =>
+          currentPost.id === post.id
+            ? {
+                ...currentPost,
+                likeCount: likeResponse.likeCount,
+                likedByCurrentUser: likeResponse.likedByCurrentUser,
+              }
+            : currentPost
+        )
+      )
+    } catch {
+      setPostError('Like action failed. Please try again.')
     }
   }
 
@@ -469,8 +501,19 @@ export default function CommunityPage() {
 
                     <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
 
-                    <div className="mt-5 flex gap-4 text-sm text-slate-500">
-                      <span>{post.likeCount} likes</span>
+                    <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
+                      <button
+                        onClick={() => handleToggleLike(post)}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+                          post.likedByCurrentUser
+                            ? 'border-white bg-white text-slate-950'
+                            : 'border-slate-700 text-slate-300 hover:bg-slate-900'
+                        }`}
+                        type="button"
+                      >
+                        {post.likedByCurrentUser ? 'Liked' : 'Like'} · {post.likeCount}
+                      </button>
+
                       <span>{postComments.length} comments</span>
                     </div>
 
