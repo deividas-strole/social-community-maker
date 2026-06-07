@@ -27,4 +27,23 @@ public record PostResponse(
                 post.getUpdatedAt()
         );
     }
+
+    public static PostResponse from(
+            Post post,
+            int likeCount,
+            int commentCount,
+            boolean likedByCurrentUser
+    ) {
+        return new PostResponse(
+                post.getId(),
+                post.getCommunity().getId(),
+                PostAuthorResponse.from(post.getAuthor()),
+                post.getContent(),
+                likeCount,
+                commentCount,
+                likedByCurrentUser,
+                post.getCreatedAt(),
+                post.getUpdatedAt()
+        );
+    }
 }

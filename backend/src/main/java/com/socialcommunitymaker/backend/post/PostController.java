@@ -26,8 +26,11 @@ public class PostController {
     }
 
     @GetMapping("/api/communities/{communityId}/posts")
-    public List<PostResponse> getCommunityPosts(@PathVariable Long communityId) {
-        return postService.getCommunityPosts(communityId);
+    public List<PostResponse> getCommunityPosts(
+            @PathVariable Long communityId,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader
+    ) {
+        return postService.getCommunityPosts(communityId, authorizationHeader);
     }
 
     @DeleteMapping("/api/posts/{postId}")

@@ -13,6 +13,12 @@ function getAuthToken(): string {
   return token
 }
 
+export type LikeResponse = {
+  postId: number
+  likedByCurrentUser: boolean
+  likeCount: number
+}
+
 export async function createPost(communityId: number, data: CreatePostRequest): Promise<Post> {
   const token = getAuthToken()
 
@@ -30,7 +36,15 @@ export async function createPost(communityId: number, data: CreatePostRequest): 
 }
 
 export async function getCommunityPosts(communityId: number): Promise<Post[]> {
-  const response = await axios.get<Post[]>(`${API_BASE_URL}/communities/${communityId}/posts`)
+  const token = localStorage.getItem('token')
+
+  const response = await axios.get<Post[]>(`${API_BASE_URL}/communities/${communityId}/posts`, {
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : undefined,
+  })
 
   return response.data
 }
@@ -43,4 +57,32 @@ export async function deletePost(postId: number): Promise<void> {
       Authorization: `Bearer ${token}`,
     },
   })
+}
+
+export async function likePost(postId: number): Promise<LikeResponse> {
+  const token = getAuthToken()
+
+  const response = await axios.post<LikeResponse>(
+    `${API_BASE_URL}/posts/${postId}/likes`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data
+}
+
+export async function unlikePost(postId: number): Promise<LikeResponse> {
+  const token = getAuthToken()
+
+  const response = await axios.delete<LikeResponse>(`${API_BASE_URL}/posts/${postId}/likes`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
 }
