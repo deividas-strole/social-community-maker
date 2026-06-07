@@ -45,46 +45,51 @@ export default function DashboardPage() {
     loadDashboard()
   }, [navigate])
 
-  function handleLogout() {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    navigate('/login')
-  }
+  const totalCommunities = ownedCommunities.length + joinedCommunities.length
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        Loading dashboard...
+      <main className="flex min-h-[calc(100vh-73px)] items-center justify-center px-6">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 px-6 py-5 text-slate-300">
+          Loading dashboard...
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto max-w-5xl">
-        <div className="mb-8 flex flex-col justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center">
-          <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-bold">
-              Welcome{user ? `, ${user.displayName}` : ''}
-            </h1>
-            <p className="mt-2 text-slate-300">Manage your communities, posts, and account.</p>
-          </div>
+    <main className="min-h-[calc(100vh-73px)] px-6 py-10">
+      <section className="mx-auto max-w-6xl">
+        <div className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+            <div>
+              <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/create-community"
-              className="rounded-lg bg-white px-5 py-3 text-center font-semibold text-slate-950 hover:bg-slate-200"
-            >
-              Create Community
-            </Link>
+              <h1 className="mt-3 text-4xl font-bold tracking-tight">
+                Welcome{user ? `, ${user.displayName}` : ''}
+              </h1>
 
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-slate-700 px-5 py-3 font-semibold text-white hover:bg-slate-800"
-            >
-              Log out
-            </button>
+              <p className="mt-3 max-w-2xl text-slate-300">
+                Manage your communities, browse public communities, and continue building your
+                social platform.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/create-community"
+                className="rounded-lg bg-white px-5 py-3 text-center font-semibold text-slate-950 hover:bg-slate-200"
+              >
+                Create Community
+              </Link>
+
+              <Link
+                to="/communities"
+                className="rounded-lg border border-slate-700 px-5 py-3 text-center font-semibold text-white hover:bg-slate-800"
+              >
+                Browse Communities
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -96,131 +101,120 @@ export default function DashboardPage() {
 
         <div className="mb-8 grid gap-6 md:grid-cols-3">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Owned Communities</h2>
-            <p className="mt-3 text-3xl font-bold">{ownedCommunities.length}</p>
-            <p className="mt-2 text-sm text-slate-400">Communities you created.</p>
+            <p className="text-sm text-slate-400">Owned Communities</p>
+            <p className="mt-3 text-4xl font-bold">{ownedCommunities.length}</p>
+            <p className="mt-2 text-sm text-slate-500">Communities you created.</p>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Joined Communities</h2>
-            <p className="mt-3 text-3xl font-bold">{joinedCommunities.length}</p>
-            <p className="mt-2 text-sm text-slate-400">Communities you joined.</p>
+            <p className="text-sm text-slate-400">Joined Communities</p>
+            <p className="mt-3 text-4xl font-bold">{joinedCommunities.length}</p>
+            <p className="mt-2 text-sm text-slate-500">Communities you joined.</p>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Posts</h2>
-            <p className="mt-3 text-3xl font-bold">0</p>
-            <p className="mt-2 text-sm text-slate-400">Posting analytics coming soon.</p>
+            <p className="text-sm text-slate-400">Total Communities</p>
+            <p className="mt-3 text-4xl font-bold">{totalCommunities}</p>
+            <p className="mt-2 text-sm text-slate-500">Your current community activity.</p>
           </div>
         </div>
 
-        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Owned Communities</h2>
-              <p className="mt-1 text-sm text-slate-400">Communities you have created.</p>
-            </div>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <CommunitySection
+            title="Owned Communities"
+            description="Communities you created and manage."
+            communities={ownedCommunities}
+            emptyTitle="No owned communities yet."
+            emptyDescription="Create your first community and start building your platform."
+            emptyActionLabel="Create Community"
+            emptyActionTo="/create-community"
+            badgeFallback="OWNER"
+          />
 
-            <Link
-              to="/create-community"
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              New
-            </Link>
-          </div>
-
-          {ownedCommunities.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center">
-              <p className="text-slate-300">No owned communities yet.</p>
-              <Link
-                to="/create-community"
-                className="mt-4 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200"
-              >
-                Create your first community
-              </Link>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {ownedCommunities.map((community) => (
-                <div
-                  key={community.id}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-5"
-                >
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row">
-                    <div>
-                      <Link
-                        to={`/communities/${community.slug}`}
-                        className="text-lg font-semibold hover:underline"
-                      >
-                        {community.name}
-                      </Link>
-                      <p className="mt-1 text-sm text-slate-400">/communities/{community.slug}</p>
-                      {community.description && (
-                        <p className="mt-3 text-slate-300">{community.description}</p>
-                      )}
-                    </div>
-
-                    <span className="h-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
-                      {community.visibility}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Joined Communities</h2>
-              <p className="mt-1 text-sm text-slate-400">Communities you joined as a member.</p>
-            </div>
-
-            <Link
-              to="/communities"
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Browse
-            </Link>
-          </div>
-
-          {joinedCommunities.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center">
-              <p className="text-slate-300">No joined communities yet.</p>
-              <p className="mt-2 text-sm text-slate-500">Browse public communities and join one.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {joinedCommunities.map((community) => (
-                <div
-                  key={community.id}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-5"
-                >
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row">
-                    <div>
-                      <Link
-                        to={`/communities/${community.slug}`}
-                        className="text-lg font-semibold hover:underline"
-                      >
-                        {community.name}
-                      </Link>
-                      <p className="mt-1 text-sm text-slate-400">/communities/{community.slug}</p>
-                      {community.description && (
-                        <p className="mt-3 text-slate-300">{community.description}</p>
-                      )}
-                    </div>
-
-                    <span className="h-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
-                      {community.currentUserRole || community.visibility}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <CommunitySection
+            title="Joined Communities"
+            description="Communities where you participate as a member."
+            communities={joinedCommunities}
+            emptyTitle="No joined communities yet."
+            emptyDescription="Browse public communities and join one."
+            emptyActionLabel="Browse Communities"
+            emptyActionTo="/communities"
+            badgeFallback="MEMBER"
+          />
         </div>
       </section>
     </main>
+  )
+}
+
+type CommunitySectionProps = {
+  title: string
+  description: string
+  communities: Community[]
+  emptyTitle: string
+  emptyDescription: string
+  emptyActionLabel: string
+  emptyActionTo: string
+  badgeFallback: string
+}
+
+function CommunitySection({
+  title,
+  description,
+  communities,
+  emptyTitle,
+  emptyDescription,
+  emptyActionLabel,
+  emptyActionTo,
+  badgeFallback,
+}: CommunitySectionProps) {
+  return (
+    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">{title}</h2>
+        <p className="mt-1 text-sm text-slate-400">{description}</p>
+      </div>
+
+      {communities.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-700 bg-slate-950 p-8 text-center">
+          <p className="font-semibold text-slate-200">{emptyTitle}</p>
+          <p className="mt-2 text-sm text-slate-500">{emptyDescription}</p>
+
+          <Link
+            to={emptyActionTo}
+            className="mt-5 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200"
+          >
+            {emptyActionLabel}
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {communities.map((community) => (
+            <Link
+              key={community.id}
+              to={`/communities/${community.slug}`}
+              className="rounded-xl border border-slate-800 bg-slate-950 p-5 hover:bg-slate-900"
+            >
+              <div className="flex flex-col justify-between gap-3 sm:flex-row">
+                <div>
+                  <h3 className="text-lg font-semibold">{community.name}</h3>
+                  <p className="mt-1 text-sm text-slate-500">/communities/{community.slug}</p>
+
+                  {community.description && (
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-300">
+                      {community.description}
+                    </p>
+                  )}
+                </div>
+
+                <span className="h-fit w-fit rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
+                  {community.currentUserRole || badgeFallback}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
