@@ -85,8 +85,6 @@ Community members can like and unlike posts. The app prevents duplicate likes an
 ## Current Routes
 
 ### Frontend Routes
-
-```text
 /
  /register
  /login
@@ -94,3 +92,99 @@ Community members can like and unlike posts. The app prevents duplicate likes an
  /communities
  /communities/:slug
  /create-community
+
+### Backend API Routes
+GET    /api/health
+
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/me
+
+GET    /api/communities
+POST   /api/communities
+GET    /api/communities/me
+GET    /api/communities/{slug}
+POST   /api/communities/{communityId}/join
+DELETE /api/communities/{communityId}/leave
+
+GET    /api/communities/{communityId}/posts
+POST   /api/communities/{communityId}/posts
+DELETE /api/posts/{postId}
+
+GET    /api/posts/{postId}/comments
+POST   /api/posts/{postId}/comments
+DELETE /api/comments/{commentId}
+
+POST   /api/posts/{postId}/likes
+DELETE /api/posts/{postId}/likes
+Project Structure
+social-community-maker/
+├── backend/
+│   ├── src/main/java/com/socialcommunitymaker/backend/
+│   │   ├── auth/
+│   │   ├── comment/
+│   │   ├── community/
+│   │   ├── config/
+│   │   ├── health/
+│   │   ├── like/
+│   │   ├── post/
+│   │   ├── security/
+│   │   └── user/
+│   └── src/main/resources/
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   └── types/
+│   └── public/
+└── docs/
+Local Development
+Backend
+
+Open the backend project in IntelliJ IDEA.
+
+Run:
+
+mvnw.cmd spring-boot:run
+
+Backend runs on:
+
+http://localhost:8080
+
+Health check:
+
+http://localhost:8080/api/health
+Frontend
+
+Open the frontend project in WebStorm.
+
+Run the Vite dev script:
+
+npm run dev
+
+Frontend runs on:
+
+http://localhost:5173
+Development Database
+
+The project currently uses H2 for local development.
+
+The app is designed so it can later be moved to PostgreSQL for a more production-like setup.
+
+Future Improvements
+
+Planned improvements:
+
+PostgreSQL database setup
+Real JWT filter/security context
+Profile pages
+Community admin tools
+Edit/delete community settings
+Comment count optimization
+Pagination for feeds
+Search communities
+Image uploads
+Notifications
+Deployment
