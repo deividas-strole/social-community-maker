@@ -1,24 +1,6 @@
 # API Contract
 
-## Project Name
-
-Social Community Maker
-
-## Overview
-
-This document describes the initial REST API contract for the MVP version of Social Community Maker.
-
-The API will be built with Spring Boot and will support:
-
-* User registration and login
-* JWT authentication
-* Current user profile
-* Community creation and viewing
-* Community membership
-* Posts
-* Comments
-* Likes
-* Basic owner/admin moderation
+This document describes the current MVP backend API for Social Community Maker.
 
 Base URL for local development:
 
@@ -26,242 +8,205 @@ Base URL for local development:
 http://localhost:8080/api
 ```
 
----
+Frontend local URL:
 
-# General API Rules
+```text
+http://localhost:5173
+```
 
-## Authentication
+Authentication uses JWT bearer tokens.
 
-Protected endpoints require a JWT token in the request header:
+Protected requests should include:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-## Content Type
+---
 
-Requests with JSON body should use:
+# Health
 
-```http
-Content-Type: application/json
+## GET `/health`
+
+Checks whether the backend is running.
+
+### Response `200 OK`
+
+```json
+{
+  "status": "UP",
+  "service": "Social Community Maker Backend",
+  "timestamp": "2026-06-05T20:00:00Z"
+}
 ```
 
-## Standard Success Response
+---
 
-Most successful responses return JSON.
+# Authentication
 
-Example:
+## POST `/auth/register`
+
+Registers a new user.
+
+### Request
+
+```json
+{
+  "email": "test@example.com",
+  "username": "testuser",
+  "displayName": "Test User",
+  "password": "Password123!"
+}
+```
+
+### Response `201 Created`
 
 ```json
 {
   "id": 1,
-  "message": "Success"
-}
-```
-
-## Standard Error Response
-
-Errors should use a consistent format:
-
-```json
-{
-  "timestamp": "2026-06-03T12:00:00",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Email is already in use",
-  "path": "/api/auth/register"
-}
-```
-
----
-
-# HTTP Status Codes
-
-| Status Code | Meaning                                   |
-| ----------: | ----------------------------------------- |
-|         200 | OK                                        |
-|         201 | Created                                   |
-|         204 | No Content                                |
-|         400 | Bad Request / validation error            |
-|         401 | Unauthorized / missing or invalid token   |
-|         403 | Forbidden / user does not have permission |
-|         404 | Resource not found                        |
-|         409 | Conflict / duplicate resource             |
-|         500 | Internal server error                     |
-
----
-
-# Authentication Endpoints
-
-## Register User
-
-```http
-POST /api/auth/register
-```
-
-### Description
-
-Creates a new user account.
-
-### Authentication
-
-Not required.
-
-### Request Body
-
-```json
-{
-  "email": "user@example.com",
-  "username": "johndoe",
-  "displayName": "John Doe",
-  "password": "Password123!"
+  "email": "test@example.com",
+  "username": "testuser",
+  "displayName": "Test User",
+  "bio": null,
+  "avatarUrl": null,
+  "createdAt": "2026-06-05T20:00:00"
 }
 ```
 
 ### Validation Rules
 
-* Email is required.
-* Email must be valid.
-* Email must be unique.
-* Username is required.
-* Username must be unique.
-* Display name is required.
-* Password is required.
-* Password should meet minimum security requirements.
-
-### Success Response
-
-```http
-201 Created
+```text
+email is required and must be valid
+username is required and must be 3-50 characters
+displayName is required and must be 2-100 characters
+password is required and must be 8-100 characters
+email must be unique
+username must be unique
 ```
 
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "username": "johndoe",
-  "displayName": "John Doe",
-  "createdAt": "2026-06-03T12:00:00"
-}
-```
+### Error Responses
 
-### Possible Errors
-
-```http
-400 Bad Request
-409 Conflict
+```text
+400 Bad Request - validation error
+409 Conflict - email or username already exists
 ```
 
 ---
 
-## Login User
+## POST `/auth/login`
 
-```http
-POST /api/auth/login
-```
+Logs in a user and returns a JWT token.
 
-### Description
-
-Authenticates a user and returns a JWT token.
-
-### Authentication
-
-Not required.
-
-### Request Body
+### Request
 
 ```json
 {
-  "email": "user@example.com",
+  "email": "test@example.com",
   "password": "Password123!"
 }
 ```
 
-### Success Response
-
-```http
-200 OK
-```
+### Response `200 OK`
 
 ```json
 {
-  "token": "jwt-token-here",
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
   "tokenType": "Bearer",
   "user": {
     "id": 1,
-    "email": "user@example.com",
-    "username": "johndoe",
-    "displayName": "John Doe"
+    "email": "test@example.com",
+    "username": "testuser",
+    "displayName": "Test User",
+    "bio": null,
+    "avatarUrl": null,
+    "createdAt": "2026-06-05T20:00:00"
   }
 }
 ```
 
-### Possible Errors
+### Error Responses
 
-```http
-400 Bad Request
-401 Unauthorized
+```text
+401 Unauthorized - invalid email or password
 ```
 
 ---
 
-## Get Current User
+## GET `/auth/me`
+
+Returns the current logged-in user.
+
+### Headers
 
 ```http
-GET /api/auth/me
+Authorization: Bearer <token>
 ```
 
-### Description
-
-Returns the currently authenticated user.
-
-### Authentication
-
-Required.
-
-### Success Response
-
-```http
-200 OK
-```
+### Response `200 OK`
 
 ```json
 {
   "id": 1,
-  "email": "user@example.com",
-  "username": "johndoe",
-  "displayName": "John Doe",
+  "email": "test@example.com",
+  "username": "testuser",
+  "displayName": "Test User",
   "bio": null,
   "avatarUrl": null,
-  "createdAt": "2026-06-03T12:00:00"
+  "createdAt": "2026-06-05T20:00:00"
 }
 ```
 
-### Possible Errors
+### Error Responses
 
-```http
-401 Unauthorized
+```text
+401 Unauthorized - missing, invalid, or expired token
 ```
 
 ---
 
-# Community Endpoints
+# Communities
 
-## Create Community
+## GET `/communities`
 
-```http
-POST /api/communities
+Returns public communities.
+
+### Response `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "name": "LA Developers",
+    "slug": "la-developers",
+    "description": "A community for developers in Los Angeles.",
+    "visibility": "PUBLIC",
+    "owner": {
+      "id": 1,
+      "email": "test@example.com",
+      "username": "testuser",
+      "displayName": "Test User"
+    },
+    "currentUserIsMember": null,
+    "currentUserRole": null,
+    "createdAt": "2026-06-05T20:00:00",
+    "updatedAt": "2026-06-05T20:00:00"
+  }
+]
 ```
 
-### Description
+---
 
-Creates a new community. The authenticated user becomes the community owner.
+## POST `/communities`
 
-### Authentication
+Creates a community.
 
-Required.
+### Headers
 
-### Request Body
+```http
+Authorization: Bearer <token>
+```
+
+### Request
 
 ```json
 {
@@ -270,311 +215,69 @@ Required.
   "description": "A community for developers in Los Angeles.",
   "visibility": "PUBLIC"
 }
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": 1,
+  "name": "LA Developers",
+  "slug": "la-developers",
+  "description": "A community for developers in Los Angeles.",
+  "visibility": "PUBLIC",
+  "owner": {
+    "id": 1,
+    "email": "test@example.com",
+    "username": "testuser",
+    "displayName": "Test User"
+  },
+  "currentUserIsMember": true,
+  "currentUserRole": "OWNER",
+  "createdAt": "2026-06-05T20:00:00",
+  "updatedAt": "2026-06-05T20:00:00"
+}
+```
+
+### Notes
+
+```text
+The creator automatically becomes OWNER.
+An OWNER record is created in community_members.
 ```
 
 ### Validation Rules
 
-* Name is required.
-* Slug is required.
-* Slug must be unique.
-* Slug should be URL-friendly.
-* Visibility is required.
-* Visibility should be one of: `PUBLIC`, `PRIVATE`, `INVITE_ONLY`.
-
-### Success Response
-
-```http
-201 Created
+```text
+name is required and must be 2-100 characters
+slug is required and must be 3-100 characters
+slug must use lowercase letters, numbers, and hyphens only
+description must be 2000 characters or less
+visibility is required
+slug must be unique
 ```
 
-```json
-{
-  "id": 1,
-  "name": "LA Developers",
-  "slug": "la-developers",
-  "description": "A community for developers in Los Angeles.",
-  "visibility": "PUBLIC",
-  "owner": {
-    "id": 1,
-    "username": "johndoe",
-    "displayName": "John Doe"
-  },
-  "createdAt": "2026-06-03T12:00:00"
-}
-```
+### Error Responses
 
-### Possible Errors
-
-```http
-400 Bad Request
-401 Unauthorized
-409 Conflict
+```text
+400 Bad Request - validation error
+401 Unauthorized - missing or invalid token
+409 Conflict - slug already exists
 ```
 
 ---
 
-## Get All Public Communities
+## GET `/communities/me`
+
+Returns the logged-in user's owned and joined communities.
+
+### Headers
 
 ```http
-GET /api/communities
+Authorization: Bearer <token>
 ```
 
-### Description
-
-Returns a list of public communities.
-
-### Authentication
-
-Not required.
-
-### Query Parameters
-
-| Name | Required | Description |
-| ---- | -------: | ----------- |
-| page |       No | Page number |
-| size |       No | Page size   |
-| sort |       No | Sort field  |
-
-Example:
-
-```http
-GET /api/communities?page=0&size=10
-```
-
-### Success Response
-
-```http
-200 OK
-```
-
-```json
-{
-  "content": [
-    {
-      "id": 1,
-      "name": "LA Developers",
-      "slug": "la-developers",
-      "description": "A community for developers in Los Angeles.",
-      "visibility": "PUBLIC",
-      "memberCount": 12,
-      "postCount": 35,
-      "createdAt": "2026-06-03T12:00:00"
-    }
-  ],
-  "page": 0,
-  "size": 10,
-  "totalElements": 1,
-  "totalPages": 1
-}
-```
-
----
-
-## Get Community by Slug
-
-```http
-GET /api/communities/{slug}
-```
-
-### Description
-
-Returns a community by its slug.
-
-### Authentication
-
-Not required for public communities. Required for private communities.
-
-### Success Response
-
-```http
-200 OK
-```
-
-```json
-{
-  "id": 1,
-  "name": "LA Developers",
-  "slug": "la-developers",
-  "description": "A community for developers in Los Angeles.",
-  "visibility": "PUBLIC",
-  "owner": {
-    "id": 1,
-    "username": "johndoe",
-    "displayName": "John Doe"
-  },
-  "memberCount": 12,
-  "postCount": 35,
-  "currentUserMembership": {
-    "isMember": true,
-    "role": "OWNER"
-  },
-  "createdAt": "2026-06-03T12:00:00"
-}
-```
-
-### Possible Errors
-
-```http
-403 Forbidden
-404 Not Found
-```
-
----
-
-## Update Community
-
-```http
-PUT /api/communities/{communityId}
-```
-
-### Description
-
-Updates basic community information.
-
-### Authentication
-
-Required.
-
-### Authorization
-
-Only the community owner or admin can update the community.
-
-### Request Body
-
-```json
-{
-  "name": "LA Software Developers",
-  "description": "A community for software developers in Los Angeles.",
-  "visibility": "PUBLIC"
-}
-```
-
-### Success Response
-
-```http
-200 OK
-```
-
-```json
-{
-  "id": 1,
-  "name": "LA Software Developers",
-  "slug": "la-developers",
-  "description": "A community for software developers in Los Angeles.",
-  "visibility": "PUBLIC",
-  "updatedAt": "2026-06-03T12:30:00"
-}
-```
-
-### Possible Errors
-
-```http
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
----
-
-## Join Community
-
-```http
-POST /api/communities/{communityId}/join
-```
-
-### Description
-
-Adds the authenticated user as a member of a community.
-
-### Authentication
-
-Required.
-
-### MVP Rule
-
-For MVP, users can join public communities only.
-
-### Success Response
-
-```http
-201 Created
-```
-
-```json
-{
-  "id": 1,
-  "communityId": 1,
-  "userId": 2,
-  "role": "MEMBER",
-  "joinedAt": "2026-06-03T12:00:00"
-}
-```
-
-### Possible Errors
-
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
-409 Conflict
-```
-
----
-
-## Leave Community
-
-```http
-DELETE /api/communities/{communityId}/leave
-```
-
-### Description
-
-Removes the authenticated user from a community.
-
-### Authentication
-
-Required.
-
-### MVP Rule
-
-Community owners cannot leave their own community unless ownership transfer is added in the future.
-
-### Success Response
-
-```http
-204 No Content
-```
-
-### Possible Errors
-
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
----
-
-## Get My Communities
-
-```http
-GET /api/communities/me
-```
-
-### Description
-
-Returns communities owned or joined by the authenticated user.
-
-### Authentication
-
-Required.
-
-### Success Response
-
-```http
-200 OK
-```
+### Response `200 OK`
 
 ```json
 {
@@ -583,8 +286,18 @@ Required.
       "id": 1,
       "name": "LA Developers",
       "slug": "la-developers",
-      "role": "OWNER",
-      "memberCount": 12
+      "description": "A community for developers in Los Angeles.",
+      "visibility": "PUBLIC",
+      "owner": {
+        "id": 1,
+        "email": "test@example.com",
+        "username": "testuser",
+        "displayName": "Test User"
+      },
+      "currentUserIsMember": true,
+      "currentUserRole": "OWNER",
+      "createdAt": "2026-06-05T20:00:00",
+      "updatedAt": "2026-06-05T20:00:00"
     }
   ],
   "joinedCommunities": [
@@ -592,351 +305,293 @@ Required.
       "id": 2,
       "name": "React Builders",
       "slug": "react-builders",
-      "role": "MEMBER",
-      "memberCount": 45
+      "description": "A community for React developers.",
+      "visibility": "PUBLIC",
+      "owner": {
+        "id": 2,
+        "email": "owner@example.com",
+        "username": "owneruser",
+        "displayName": "Owner User"
+      },
+      "currentUserIsMember": true,
+      "currentUserRole": "MEMBER",
+      "createdAt": "2026-06-05T20:00:00",
+      "updatedAt": "2026-06-05T20:00:00"
     }
   ]
 }
 ```
 
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+```
+
 ---
 
-## Get Community Members
+## GET `/communities/{slug}`
+
+Returns one community by slug.
+
+### Optional Headers
 
 ```http
-GET /api/communities/{communityId}/members
+Authorization: Bearer <token>
 ```
 
-### Description
+If a token is sent, response includes the current user's membership status.
 
-Returns members of a community.
+### Response `200 OK`
 
-### Authentication
+```json
+{
+  "id": 1,
+  "name": "LA Developers",
+  "slug": "la-developers",
+  "description": "A community for developers in Los Angeles.",
+  "visibility": "PUBLIC",
+  "owner": {
+    "id": 1,
+    "email": "test@example.com",
+    "username": "testuser",
+    "displayName": "Test User"
+  },
+  "currentUserIsMember": true,
+  "currentUserRole": "MEMBER",
+  "createdAt": "2026-06-05T20:00:00",
+  "updatedAt": "2026-06-05T20:00:00"
+}
+```
 
-Required.
+### Error Responses
 
-### Authorization
+```text
+404 Not Found - community not found
+```
 
-User must be a community member.
+---
 
-### Success Response
+## POST `/communities/{communityId}/join`
+
+Joins a public community.
+
+### Headers
 
 ```http
-200 OK
+Authorization: Bearer <token>
 ```
+
+### Response `201 Created`
+
+```json
+{
+  "id": 10,
+  "communityId": 1,
+  "userId": 2,
+  "role": "MEMBER",
+  "joinedAt": "2026-06-05T20:00:00"
+}
+```
+
+### Rules
+
+```text
+Only logged-in users can join.
+Only PUBLIC communities can be joined at this time.
+A user cannot join the same community more than once.
+Community owner is already treated as a member.
+```
+
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+403 Forbidden - community is not public
+404 Not Found - community not found
+409 Conflict - already a member
+```
+
+---
+
+## DELETE `/communities/{communityId}/leave`
+
+Leaves a joined community.
+
+### Headers
+
+```http
+Authorization: Bearer <token>
+```
+
+### Response `204 No Content`
+
+No response body.
+
+### Rules
+
+```text
+A member can leave a joined community.
+The OWNER cannot leave their own community.
+```
+
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+403 Forbidden - owner cannot leave own community
+404 Not Found - community or membership not found
+```
+
+---
+
+# Posts
+
+## GET `/communities/{communityId}/posts`
+
+Returns active posts for a community.
+
+### Optional Headers
+
+```http
+Authorization: Bearer <token>
+```
+
+If a token is sent, each post includes whether the current user liked it.
+
+### Response `200 OK`
 
 ```json
 [
   {
     "id": 1,
-    "user": {
+    "communityId": 1,
+    "author": {
       "id": 1,
-      "username": "johndoe",
-      "displayName": "John Doe"
+      "username": "testuser",
+      "displayName": "Test User"
     },
-    "role": "OWNER",
-    "joinedAt": "2026-06-03T12:00:00"
+    "content": "Welcome to the community!",
+    "likeCount": 3,
+    "commentCount": 2,
+    "likedByCurrentUser": true,
+    "createdAt": "2026-06-05T20:00:00",
+    "updatedAt": "2026-06-05T20:00:00"
   }
 ]
 ```
 
----
+### Error Responses
 
-# Post Endpoints
-
-## Create Post
-
-```http
-POST /api/communities/{communityId}/posts
+```text
+404 Not Found - community not found
 ```
 
-### Description
+---
 
-Creates a post inside a community.
+## POST `/communities/{communityId}/posts`
 
-### Authentication
+Creates a post in a community.
 
-Required.
+### Headers
 
-### Authorization
+```http
+Authorization: Bearer <token>
+```
 
-User must be a member of the community.
-
-### Request Body
+### Request
 
 ```json
 {
-  "content": "Hello everyone! Welcome to the community."
+  "content": "Welcome to this community!"
 }
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": 1,
+  "communityId": 1,
+  "author": {
+    "id": 1,
+    "username": "testuser",
+    "displayName": "Test User"
+  },
+  "content": "Welcome to this community!",
+  "likeCount": 0,
+  "commentCount": 0,
+  "likedByCurrentUser": false,
+  "createdAt": "2026-06-05T20:00:00",
+  "updatedAt": "2026-06-05T20:00:00"
+}
+```
+
+### Rules
+
+```text
+Only logged-in community members can create posts.
+Community owners are members through OWNER membership.
 ```
 
 ### Validation Rules
 
-* Content is required.
-* Content cannot be blank.
-* Content should have a maximum length.
-
-### Success Response
-
-```http
-201 Created
+```text
+content is required
+content must be 5000 characters or less
 ```
 
-```json
-{
-  "id": 1,
-  "communityId": 1,
-  "author": {
-    "id": 1,
-    "username": "johndoe",
-    "displayName": "John Doe"
-  },
-  "content": "Hello everyone! Welcome to the community.",
-  "likeCount": 0,
-  "commentCount": 0,
-  "likedByCurrentUser": false,
-  "createdAt": "2026-06-03T12:00:00",
-  "updatedAt": "2026-06-03T12:00:00"
-}
-```
+### Error Responses
 
-### Possible Errors
-
-```http
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
+```text
+400 Bad Request - validation error
+401 Unauthorized - missing or invalid token
+403 Forbidden - user is not a community member
+404 Not Found - community not found
 ```
 
 ---
 
-## Get Community Feed
+## DELETE `/posts/{postId}`
+
+Soft-deletes a post.
+
+### Headers
 
 ```http
-GET /api/communities/{communityId}/posts
+Authorization: Bearer <token>
 ```
 
-### Description
+### Response `204 No Content`
 
-Returns posts for a community feed, newest first.
+No response body.
 
-### Authentication
+### Rules
 
-Required for private communities. Public communities may be readable by guests depending on final MVP decision.
-
-### Query Parameters
-
-| Name | Required | Description |
-| ---- | -------: | ----------- |
-| page |       No | Page number |
-| size |       No | Page size   |
-
-Example:
-
-```http
-GET /api/communities/1/posts?page=0&size=20
+```text
+Post author can delete their own post.
+Community owner can delete posts in their community.
+Other users cannot delete the post.
+Deleted posts are hidden from feeds.
 ```
 
-### Success Response
+### Error Responses
 
-```http
-200 OK
-```
-
-```json
-{
-  "content": [
-    {
-      "id": 1,
-      "communityId": 1,
-      "author": {
-        "id": 1,
-        "username": "johndoe",
-        "displayName": "John Doe"
-      },
-      "content": "Hello everyone! Welcome to the community.",
-      "likeCount": 3,
-      "commentCount": 2,
-      "likedByCurrentUser": true,
-      "createdAt": "2026-06-03T12:00:00",
-      "updatedAt": "2026-06-03T12:00:00"
-    }
-  ],
-  "page": 0,
-  "size": 20,
-  "totalElements": 1,
-  "totalPages": 1
-}
+```text
+401 Unauthorized - missing or invalid token
+403 Forbidden - no permission to delete this post
+404 Not Found - post not found
 ```
 
 ---
 
-## Get Post by ID
+# Comments
 
-```http
-GET /api/posts/{postId}
-```
+## GET `/posts/{postId}/comments`
 
-### Description
+Returns active comments for a post.
 
-Returns one post by ID.
-
-### Authentication
-
-Required if the post belongs to a private community.
-
-### Success Response
-
-```http
-200 OK
-```
-
-```json
-{
-  "id": 1,
-  "communityId": 1,
-  "author": {
-    "id": 1,
-    "username": "johndoe",
-    "displayName": "John Doe"
-  },
-  "content": "Hello everyone! Welcome to the community.",
-  "likeCount": 3,
-  "commentCount": 2,
-  "likedByCurrentUser": true,
-  "createdAt": "2026-06-03T12:00:00",
-  "updatedAt": "2026-06-03T12:00:00"
-}
-```
-
-### Possible Errors
-
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
----
-
-## Delete Post
-
-```http
-DELETE /api/posts/{postId}
-```
-
-### Description
-
-Deletes a post.
-
-### Authentication
-
-Required.
-
-### Authorization
-
-Allowed users:
-
-* Post author
-* Community owner
-* Community admin
-
-### Success Response
-
-```http
-204 No Content
-```
-
-### Possible Errors
-
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
----
-
-# Comment Endpoints
-
-## Create Comment
-
-```http
-POST /api/posts/{postId}/comments
-```
-
-### Description
-
-Creates a comment on a post.
-
-### Authentication
-
-Required.
-
-### Authorization
-
-User must be a member of the community where the post belongs.
-
-### Request Body
-
-```json
-{
-  "content": "Great post!"
-}
-```
-
-### Success Response
-
-```http
-201 Created
-```
-
-```json
-{
-  "id": 1,
-  "postId": 1,
-  "author": {
-    "id": 2,
-    "username": "janedoe",
-    "displayName": "Jane Doe"
-  },
-  "content": "Great post!",
-  "createdAt": "2026-06-03T12:10:00",
-  "updatedAt": "2026-06-03T12:10:00"
-}
-```
-
-### Possible Errors
-
-```http
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-```
-
----
-
-## Get Comments for Post
-
-```http
-GET /api/posts/{postId}/comments
-```
-
-### Description
-
-Returns comments for a post.
-
-### Authentication
-
-Required if the post belongs to a private community.
-
-### Success Response
-
-```http
-200 OK
-```
+### Response `200 OK`
 
 ```json
 [
@@ -944,341 +599,244 @@ Required if the post belongs to a private community.
     "id": 1,
     "postId": 1,
     "author": {
-      "id": 2,
-      "username": "janedoe",
-      "displayName": "Jane Doe"
+      "id": 1,
+      "username": "testuser",
+      "displayName": "Test User"
     },
     "content": "Great post!",
-    "createdAt": "2026-06-03T12:10:00",
-    "updatedAt": "2026-06-03T12:10:00"
+    "createdAt": "2026-06-05T20:00:00",
+    "updatedAt": "2026-06-05T20:00:00"
   }
 ]
 ```
 
----
+### Error Responses
 
-## Delete Comment
-
-```http
-DELETE /api/comments/{commentId}
-```
-
-### Description
-
-Deletes a comment.
-
-### Authentication
-
-Required.
-
-### Authorization
-
-Allowed users:
-
-* Comment author
-* Community owner
-* Community admin
-
-### Success Response
-
-```http
-204 No Content
-```
-
-### Possible Errors
-
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
+```text
+404 Not Found - post not found
 ```
 
 ---
 
-# Like Endpoints
+## POST `/posts/{postId}/comments`
 
-## Like Post
+Creates a comment on a post.
+
+### Headers
 
 ```http
-POST /api/posts/{postId}/likes
+Authorization: Bearer <token>
 ```
 
-### Description
+### Request
+
+```json
+{
+  "content": "Great post!"
+}
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": 1,
+  "postId": 1,
+  "author": {
+    "id": 1,
+    "username": "testuser",
+    "displayName": "Test User"
+  },
+  "content": "Great post!",
+  "createdAt": "2026-06-05T20:00:00",
+  "updatedAt": "2026-06-05T20:00:00"
+}
+```
+
+### Rules
+
+```text
+Only logged-in community members can comment.
+```
+
+### Validation Rules
+
+```text
+content is required
+content must be 2000 characters or less
+```
+
+### Error Responses
+
+```text
+400 Bad Request - validation error
+401 Unauthorized - missing or invalid token
+403 Forbidden - user is not a community member
+404 Not Found - post not found
+```
+
+---
+
+## DELETE `/comments/{commentId}`
+
+Soft-deletes a comment.
+
+### Headers
+
+```http
+Authorization: Bearer <token>
+```
+
+### Response `204 No Content`
+
+No response body.
+
+### Rules
+
+```text
+Comment author can delete their own comment.
+Community owner can delete comments in their community.
+Other users cannot delete the comment.
+Deleted comments are hidden from comment lists.
+```
+
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+403 Forbidden - no permission to delete this comment
+404 Not Found - comment not found
+```
+
+---
+
+# Likes
+
+## POST `/posts/{postId}/likes`
 
 Likes a post.
 
-### Authentication
-
-Required.
-
-### Authorization
-
-User must be a member of the community where the post belongs.
-
-### Success Response
+### Headers
 
 ```http
-201 Created
+Authorization: Bearer <token>
 ```
+
+### Response `200 OK`
 
 ```json
 {
   "postId": 1,
   "likedByCurrentUser": true,
-  "likeCount": 4
+  "likeCount": 1
 }
 ```
 
-### Possible Errors
+### Rules
 
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
-409 Conflict
+```text
+Only logged-in community members can like posts.
+A user can like the same post only once.
+Duplicate likes are prevented by application logic and a database unique constraint.
+```
+
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+403 Forbidden - user is not a community member
+404 Not Found - post not found
 ```
 
 ---
 
-## Unlike Post
+## DELETE `/posts/{postId}/likes`
+
+Unlikes a post.
+
+### Headers
 
 ```http
-DELETE /api/posts/{postId}/likes
+Authorization: Bearer <token>
 ```
 
-### Description
-
-Removes the authenticated user's like from a post.
-
-### Authentication
-
-Required.
-
-### Success Response
-
-```http
-200 OK
-```
+### Response `200 OK`
 
 ```json
 {
   "postId": 1,
   "likedByCurrentUser": false,
-  "likeCount": 3
+  "likeCount": 0
 }
 ```
 
-### Possible Errors
+### Rules
 
-```http
-401 Unauthorized
-403 Forbidden
-404 Not Found
+```text
+If the user has liked the post, the like is removed.
+If the user has not liked the post, the response still returns likedByCurrentUser false.
+```
+
+### Error Responses
+
+```text
+401 Unauthorized - missing or invalid token
+404 Not Found - post not found
 ```
 
 ---
 
-# Dashboard Endpoint
+# Common Error Format
 
-## Get Dashboard
+Spring Boot currently returns default error responses for many errors.
 
-```http
-GET /api/dashboard
-```
-
-### Description
-
-Returns summary data for the logged-in user's dashboard.
-
-### Authentication
-
-Required.
-
-### Success Response
-
-```http
-200 OK
-```
+Example:
 
 ```json
 {
-  "user": {
-    "id": 1,
-    "username": "johndoe",
-    "displayName": "John Doe"
-  },
-  "stats": {
-    "ownedCommunities": 1,
-    "joinedCommunities": 2,
-    "totalPosts": 15
-  },
-  "ownedCommunities": [
-    {
-      "id": 1,
-      "name": "LA Developers",
-      "slug": "la-developers",
-      "memberCount": 12,
-      "postCount": 35
-    }
-  ],
-  "joinedCommunities": [
-    {
-      "id": 2,
-      "name": "React Builders",
-      "slug": "react-builders",
-      "memberCount": 45,
-      "postCount": 100
-    }
-  ]
+  "timestamp": "2026-06-05T20:00:00Z",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Community not found",
+  "path": "/api/communities/unknown"
 }
 ```
 
 ---
 
-# Request DTO Names
-
-Suggested backend DTO names:
+# MVP Authorization Rules
 
 ```text
-RegisterRequest
-LoginRequest
-AuthResponse
-UserResponse
-
-CreateCommunityRequest
-UpdateCommunityRequest
-CommunityResponse
-CommunitySummaryResponse
-CommunityMemberResponse
-
-CreatePostRequest
-PostResponse
-
-CreateCommentRequest
-CommentResponse
-
-LikeResponse
-DashboardResponse
+Public users can view public communities.
+Logged-in users can create communities.
+Community creators automatically become OWNER members.
+Logged-in users can join public communities.
+Members can create posts.
+Members can comment.
+Members can like posts.
+Post authors can delete their posts.
+Comment authors can delete their comments.
+Community owners can delete posts and comments inside their communities.
+Community owners cannot leave their own communities.
+Duplicate memberships are prevented.
+Duplicate likes are prevented.
 ```
 
 ---
 
-# Authorization Rules Summary
+# Future API Improvements
 
-| Resource  | Action            | Allowed Users                     |
-| --------- | ----------------- | --------------------------------- |
-| User      | Register          | Anyone                            |
-| User      | Login             | Anyone                            |
-| User      | View current user | Authenticated user                |
-| Community | Create            | Authenticated user                |
-| Community | View public       | Anyone                            |
-| Community | View private      | Members only                      |
-| Community | Update            | Owner/Admin                       |
-| Community | Join public       | Authenticated user                |
-| Community | Leave             | Member, except owner              |
-| Post      | Create            | Community member                  |
-| Post      | View              | Community member or public viewer |
-| Post      | Delete            | Author, owner, admin              |
-| Comment   | Create            | Community member                  |
-| Comment   | View              | Community member or public viewer |
-| Comment   | Delete            | Author, owner, admin              |
-| Like      | Create/delete     | Community member                  |
-
----
-
-# MVP Endpoint Summary
+Possible future improvements:
 
 ```text
-POST   /api/auth/register
-POST   /api/auth/login
-GET    /api/auth/me
-
-POST   /api/communities
-GET    /api/communities
-GET    /api/communities/{slug}
-PUT    /api/communities/{communityId}
-POST   /api/communities/{communityId}/join
-DELETE /api/communities/{communityId}/leave
-GET    /api/communities/me
-GET    /api/communities/{communityId}/members
-
-POST   /api/communities/{communityId}/posts
-GET    /api/communities/{communityId}/posts
-GET    /api/posts/{postId}
-DELETE /api/posts/{postId}
-
-POST   /api/posts/{postId}/comments
-GET    /api/posts/{postId}/comments
-DELETE /api/comments/{commentId}
-
-POST   /api/posts/{postId}/likes
-DELETE /api/posts/{postId}/likes
-
-GET    /api/dashboard
+Add profile update endpoints
+Add community update/delete endpoints
+Add pagination for communities, posts, and comments
+Add search endpoints
+Add image upload endpoints
+Add notification endpoints
+Add admin/moderation endpoints
+Add standardized error response DTO
+Add refresh token flow
+Add real Spring Security JWT filter
 ```
-
----
-
-# Future API Ideas
-
-The following endpoints are not required for MVP.
-
-## Image Uploads
-
-```text
-POST /api/posts/{postId}/images
-POST /api/users/me/avatar
-POST /api/communities/{communityId}/logo
-```
-
-## Notifications
-
-```text
-GET  /api/notifications
-PUT  /api/notifications/{notificationId}/read
-```
-
-## Reports and Moderation
-
-```text
-POST /api/reports
-GET  /api/communities/{communityId}/reports
-PUT  /api/reports/{reportId}/resolve
-```
-
-## AI Features
-
-```text
-POST /api/ai/communities/{communityId}/rules
-POST /api/ai/posts/{postId}/summary
-POST /api/ai/moderation/check
-```
-
-## Invite Links
-
-```text
-POST /api/communities/{communityId}/invites
-GET  /api/invites/{token}
-POST /api/invites/{token}/accept
-```
-
----
-
-# MVP Design Decision
-
-The MVP API should stay simple.
-
-The first API version should focus on:
-
-```text
-Authentication
-Communities
-Membership
-Posts
-Comments
-Likes
-Dashboard
-```
-
-Advanced features like images, AI, notifications, payments, custom domains, and chat should be added only after the core MVP is working.
-
