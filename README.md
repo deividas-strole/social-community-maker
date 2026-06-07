@@ -96,6 +96,7 @@ http://localhost:8080
 Health check:
 
 http://localhost:8080/api/health
+
 Frontend
 
 Open the frontend project in WebStorm.
@@ -107,6 +108,7 @@ npm run dev
 Frontend runs on:
 
 http://localhost:5173
+
 Development Database
 
 The project currently uses H2 for local development.
