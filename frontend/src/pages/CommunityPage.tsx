@@ -2,22 +2,30 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { getCommunityBySlug, joinCommunity, leaveCommunity } from '../api/communityApi'
 import { createPost, deletePost, getCommunityPosts } from '../api/postApi'
+import { createComment, deleteComment, getPostComments } from '../api/commentApi'
 import type { Community } from '../types/community'
 import type { Post } from '../types/post'
 import type { User } from '../types/auth'
+import type { Comment } from '../types/comment'
 
 export default function CommunityPage() {
   const { slug } = useParams<{ slug: string }>()
 
   const [community, setCommunity] = useState<Community | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
+  const [commentsByPostId, setCommentsByPostId] = useState<Record<number, Comment[]>>({})
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({})
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+
   const [postContent, setPostContent] = useState('')
   const [error, setError] = useState('')
   const [postError, setPostError] = useState('')
+  const [commentError, setCommentError] = useState('')
   const [membershipError, setMembershipError] = useState('')
+
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
+  const [isSubmittingCommentPostId, setIsSubmittingCommentPostId] = useState<number | null>(null)
   const [isMembershipLoading, setIsMembershipLoading] = useState(false)
 
   useEffect(() => {
@@ -32,6 +40,17 @@ export default function CommunityPage() {
     }
   }, [])
 
+  async function loadCommentsForPosts(loadedPosts: Post[]) {
+    const commentEntries = await Promise.all(
+      loadedPosts.map(async (post) => {
+        const comments = await getPostComments(post.id)
+        return [post.id, comments] as const
+      })
+    )
+
+    setCommentsByPostId(Object.fromEntries(commentEntries))
+  }
+
   async function reloadCommunityAndPosts() {
     if (!slug) {
       setError('Community slug is missing.')
@@ -45,6 +64,8 @@ export default function CommunityPage() {
 
       const communityPosts = await getCommunityPosts(data.id)
       setPosts(communityPosts)
+
+      await loadCommentsForPosts(communityPosts)
     } catch {
       setError('Community could not be found.')
     } finally {
@@ -123,6 +144,10 @@ export default function CommunityPage() {
       })
 
       setPosts((currentPosts) => [newPost, ...currentPosts])
+      setCommentsByPostId((currentComments) => ({
+        ...currentComments,
+        [newPost.id]: [],
+      }))
       setPostContent('')
     } catch {
       setPostError('Post could not be created. Please join the community and try again.')
@@ -141,8 +166,83 @@ export default function CommunityPage() {
     try {
       await deletePost(postId)
       setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
+      setCommentsByPostId((currentComments) => {
+        const updatedComments = { ...currentComments }
+        delete updatedComments[postId]
+        return updatedComments
+      })
     } catch {
       setPostError('Post could not be deleted.')
+    }
+  }
+
+  const handleCommentInputChange = (postId: number, value: string) => {
+    setCommentInputs((currentInputs) => ({
+      ...currentInputs,
+      [postId]: value,
+    }))
+  }
+
+  const handleCreateComment = async (postId: number, event: { preventDefault: () => void }) => {
+    event.preventDefault()
+    setCommentError('')
+
+    const content = (commentInputs[postId] || '').trim()
+
+    if (!content) {
+      setCommentError('Comment cannot be empty.')
+      return
+    }
+
+    setIsSubmittingCommentPostId(postId)
+
+    try {
+      const newComment = await createComment(postId, { content })
+
+      setCommentsByPostId((currentComments) => ({
+        ...currentComments,
+        [postId]: [...(currentComments[postId] || []), newComment],
+      }))
+
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          post.id === postId ? { ...post, commentCount: post.commentCount + 1 } : post
+        )
+      )
+
+      setCommentInputs((currentInputs) => ({
+        ...currentInputs,
+        [postId]: '',
+      }))
+    } catch {
+      setCommentError('Comment could not be created.')
+    } finally {
+      setIsSubmittingCommentPostId(null)
+    }
+  }
+
+  const handleDeleteComment = async (postId: number, commentId: number) => {
+    const confirmed = window.confirm('Delete this comment?')
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await deleteComment(commentId)
+
+      setCommentsByPostId((currentComments) => ({
+        ...currentComments,
+        [postId]: (currentComments[postId] || []).filter((comment) => comment.id !== commentId),
+      }))
+
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          post.id === postId ? { ...post, commentCount: Math.max(post.commentCount - 1, 0) } : post
+        )
+      )
+    } catch {
+      setCommentError('Comment could not be deleted.')
     }
   }
 
@@ -152,6 +252,17 @@ export default function CommunityPage() {
     }
 
     const isAuthor = post.author.id === currentUser.id
+    const isCommunityOwner = community.owner.id === currentUser.id
+
+    return isAuthor || isCommunityOwner
+  }
+
+  function canDeleteComment(comment: Comment) {
+    if (!currentUser || !community) {
+      return false
+    }
+
+    const isAuthor = comment.author.id === currentUser.id
     const isCommunityOwner = community.owner.id === currentUser.id
 
     return isAuthor || isCommunityOwner
@@ -313,6 +424,12 @@ export default function CommunityPage() {
         <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <h2 className="text-xl font-semibold">Community Feed</h2>
 
+          {commentError && (
+            <div className="mt-4 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
+              {commentError}
+            </div>
+          )}
+
           {posts.length === 0 ? (
             <div className="mt-5 rounded-xl border border-dashed border-slate-700 p-8 text-center">
               <p className="text-slate-300">No posts yet.</p>
@@ -320,41 +437,118 @@ export default function CommunityPage() {
             </div>
           ) : (
             <div className="mt-5 grid gap-4">
-              {posts.map((post) => (
-                <article
-                  key={post.id}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-5"
-                >
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row">
-                    <div>
-                      <p className="font-semibold">{post.author.displayName}</p>
-                      <p className="text-sm text-slate-500">@{post.author.username}</p>
+              {posts.map((post) => {
+                const postComments = commentsByPostId[post.id] || []
+
+                return (
+                  <article
+                    key={post.id}
+                    className="rounded-xl border border-slate-800 bg-slate-950 p-5"
+                  >
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row">
+                      <div>
+                        <p className="font-semibold">{post.author.displayName}</p>
+                        <p className="text-sm text-slate-500">@{post.author.username}</p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <span className="text-xs text-slate-500">
+                          {new Date(post.createdAt).toLocaleString()}
+                        </span>
+
+                        {canDeletePost(post) && (
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="text-xs font-semibold text-red-300 hover:text-red-200"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-start gap-3">
-                      <span className="text-xs text-slate-500">
-                        {new Date(post.createdAt).toLocaleString()}
-                      </span>
+                    <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
 
-                      {canDeletePost(post) && (
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-xs font-semibold text-red-300 hover:text-red-200"
+                    <div className="mt-5 flex gap-4 text-sm text-slate-500">
+                      <span>{post.likeCount} likes</span>
+                      <span>{postComments.length} comments</span>
+                    </div>
+
+                    <div className="mt-5 border-t border-slate-800 pt-5">
+                      <h3 className="text-sm font-semibold text-slate-300">Comments</h3>
+
+                      {postComments.length === 0 ? (
+                        <p className="mt-3 text-sm text-slate-500">No comments yet.</p>
+                      ) : (
+                        <div className="mt-4 grid gap-3">
+                          {postComments.map((comment) => (
+                            <div
+                              key={comment.id}
+                              className="rounded-lg border border-slate-800 bg-slate-900 p-4"
+                            >
+                              <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                                <div>
+                                  <p className="text-sm font-semibold">
+                                    {comment.author.displayName}
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    @{comment.author.username}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-start gap-3">
+                                  <span className="text-xs text-slate-500">
+                                    {new Date(comment.createdAt).toLocaleString()}
+                                  </span>
+
+                                  {canDeleteComment(comment) && (
+                                    <button
+                                      onClick={() => handleDeleteComment(post.id, comment.id)}
+                                      className="text-xs font-semibold text-red-300 hover:text-red-200"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">
+                                {comment.content}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {canCreatePost && (
+                        <form
+                          onSubmit={(event) => handleCreateComment(post.id, event)}
+                          className="mt-4"
                         >
-                          Delete
-                        </button>
+                          <textarea
+                            className="min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
+                            value={commentInputs[post.id] || ''}
+                            onChange={(event) =>
+                              handleCommentInputChange(post.id, event.target.value)
+                            }
+                            placeholder="Write a comment..."
+                          />
+
+                          <button
+                            className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                            type="submit"
+                            disabled={isSubmittingCommentPostId === post.id}
+                          >
+                            {isSubmittingCommentPostId === post.id
+                              ? 'Commenting...'
+                              : 'Add Comment'}
+                          </button>
+                        </form>
                       )}
                     </div>
-                  </div>
-
-                  <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
-
-                  <div className="mt-5 flex gap-4 text-sm text-slate-500">
-                    <span>{post.likeCount} likes</span>
-                    <span>{post.commentCount} comments</span>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
