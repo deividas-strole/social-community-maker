@@ -1,237 +1,96 @@
-# Social Community Maker
+# Social Community Maker by Deividas Strole
 
-**Social Community Maker** is a full-stack SaaS-style web application that allows users to create, customize, and manage their own online social communities.
+Social Community Maker is a full-stack social community platform built with React, TypeScript, Spring Boot, and JWT authentication.
 
-The project is built with **React**, **Spring Boot**, and **PostgreSQL**, with planned support for authentication, community creation, posts, comments, likes, roles, moderation, and admin dashboards.
+The project allows users to create communities, join public communities, publish posts, comment, like posts, and manage their activity through a dashboard.
 
 ## Project Status
 
-🚧 **Status:** In Development
+MVP in progress.
 
-This project is currently in the planning and early development stage.
+Completed MVP features:
 
-## Project Goal
-
-The goal of Social Community Maker is to provide a platform where users can launch their own custom online communities without building a social media platform from scratch.
-
-Example use cases include:
-
-* Developer communities
-* Fitness communities
-* Real estate groups
-* Student groups
-* Local city communities
-* Private business communities
-* Hobby and interest-based groups
-
-## Core Features
-
-### Planned MVP Features
-
-* User registration and login
-* JWT-based authentication
-* Create and manage communities
-* Join public or private communities
-* Create posts inside communities
-* Comment on posts
-* Like and unlike posts
-* View community members
-* Community owner/admin role
-* Basic moderation tools
-* Responsive React frontend
-* REST API backend with Spring Boot
-
-### Future Features
-
-* Image uploads
-* Community branding customization
-* Invite links
-* Notifications
-* Real-time chat or live updates
-* AI-generated community rules
-* AI post summaries
-* AI moderation support
-* Analytics dashboard
-* Custom domain support
-* Subscription/payment system
+- User registration
+- User login
+- JWT authentication
+- Protected dashboard route
+- Create communities
+- Browse public communities
+- Join and leave public communities
+- Owned and joined communities dashboard
+- Community detail pages
+- Create posts
+- Delete posts as author or community owner
+- Add comments to posts
+- Delete comments as author or community owner
+- Like and unlike posts
+- Shared navigation/layout
+- Polished home, dashboard, browse, and community pages
 
 ## Tech Stack
 
 ### Frontend
 
-* React
-* TypeScript
-* Vite
-* React Router
-* Tailwind CSS
-* React Query
-* Axios
-* React Hook Form
-* Zod
+- React
+- TypeScript
+- Vite
+- React Router
+- Axios
+- Tailwind CSS
 
 ### Backend
 
-* Java
-* Spring Boot
-* Spring Security
-* JWT Authentication
-* Spring Data JPA
-* Hibernate
-* PostgreSQL
-* REST API
+- Java
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Spring Security
+- JWT
+- H2 database for development
+- PostgreSQL-ready architecture
 
-### Tools
-
-* Git
-* GitHub
-* Postman
-* IntelliJ IDEA
-* VS Code
-* Docker planned for future setup
-
-## Planned Project Structure
-
-```text
-social-community-maker/
-├── backend/
-│   └── Spring Boot application
-├── frontend/
-│   └── React application
-├── docs/
-│   ├── product-requirements.md
-│   ├── database-model.md
-│   └── api-contract.md
-├── README.md
-└── .gitignore
-```
-
-## Main User Roles
-
-```text
-Platform Admin
-Community Owner
-Community Admin
-Community Member
-Guest Visitor
-```
-
-## Main Entities
-
-```text
-User
-Community
-CommunityMember
-Post
-Comment
-PostLike
-Role
-Notification
-Report
-```
-
-## Planned API Examples
+## Main Features
 
 ### Authentication
 
-```text
-POST /api/auth/register
-POST /api/auth/login
-GET /api/auth/me
-```
+Users can register, log in, and access protected pages using JWT authentication.
 
 ### Communities
 
-```text
-POST /api/communities
-GET /api/communities
-GET /api/communities/{slug}
-PUT /api/communities/{id}
-POST /api/communities/{id}/join
-```
+Users can create communities with custom names, slugs, descriptions, and visibility settings.
+
+Users can browse public communities and join or leave them.
+
+### Dashboard
+
+The dashboard shows:
+
+- Owned communities
+- Joined communities
+- Community activity summary
+- Quick actions to create or browse communities
 
 ### Posts
 
-```text
-POST /api/communities/{communityId}/posts
-GET /api/communities/{communityId}/posts
-GET /api/posts/{postId}
-DELETE /api/posts/{postId}
-```
+Community members can create posts inside communities. Post authors and community owners can delete posts.
 
 ### Comments
 
-```text
-POST /api/posts/{postId}/comments
-GET /api/posts/{postId}/comments
-DELETE /api/comments/{commentId}
-```
+Community members can comment on posts. Comment authors and community owners can delete comments.
 
 ### Likes
 
-```text
-POST /api/posts/{postId}/likes
-DELETE /api/posts/{postId}/likes
-```
+Community members can like and unlike posts. The app prevents duplicate likes and displays like counts.
 
-## MVP Development Plan
+## Current Routes
 
-1. Create planning documents
-2. Set up GitHub repository
-3. Create Spring Boot backend
-4. Configure PostgreSQL database
-5. Create backend entities and repositories
-6. Build authentication with JWT
-7. Create community CRUD endpoints
-8. Create membership system
-9. Create posts, comments, and likes
-10. Test backend APIs with Postman
-11. Create React frontend
-12. Build login and registration pages
-13. Build dashboard and community pages
-14. Connect frontend to backend APIs
-15. Add basic admin/moderation features
-16. Deploy backend and frontend
-17. Add project case study to portfolio
-
-## Local Development
-
-Local setup instructions will be added as the project is developed.
-
-### Backend
-
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Environment Variables
-
-Example environment variables will be added later.
+### Frontend Routes
 
 ```text
-DATABASE_URL=
-DATABASE_USERNAME=
-DATABASE_PASSWORD=
-JWT_SECRET=
-```
-
-## Author
-
-**Deividas Strole**
-
-* Website: https://DeividasStrole.com
-* GitHub: https://github.com/deividas-strole
-* LinkedIn: https://linkedin.com/in/deividas-strole
-* YouTube: https://youtube.com/@deividas-strole
-
-## License
-
-This project is planned as an open-source portfolio project. License information will be added later.
+/
+ /register
+ /login
+ /dashboard
+ /communities
+ /communities/:slug
+ /create-community
