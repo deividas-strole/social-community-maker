@@ -82,66 +82,6 @@ Community members can comment on posts. Comment authors and community owners can
 
 Community members can like and unlike posts. The app prevents duplicate likes and displays like counts.
 
-## Current Routes
-
-### Frontend Routes
-/
- /register
- /login
- /dashboard
- /communities
- /communities/:slug
- /create-community
-
-### Backend API Routes
-GET    /api/health
-
-POST   /api/auth/register
-POST   /api/auth/login
-GET    /api/auth/me
-
-GET    /api/communities
-POST   /api/communities
-GET    /api/communities/me
-GET    /api/communities/{slug}
-POST   /api/communities/{communityId}/join
-DELETE /api/communities/{communityId}/leave
-
-GET    /api/communities/{communityId}/posts
-POST   /api/communities/{communityId}/posts
-DELETE /api/posts/{postId}
-
-GET    /api/posts/{postId}/comments
-POST   /api/posts/{postId}/comments
-DELETE /api/comments/{commentId}
-
-POST   /api/posts/{postId}/likes
-DELETE /api/posts/{postId}/likes
-Project Structure
-social-community-maker/
-├── backend/
-│   ├── src/main/java/com/socialcommunitymaker/backend/
-│   │   ├── auth/
-│   │   ├── comment/
-│   │   ├── community/
-│   │   ├── config/
-│   │   ├── health/
-│   │   ├── like/
-│   │   ├── post/
-│   │   ├── security/
-│   │   └── user/
-│   └── src/main/resources/
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   ├── layouts/
-│   │   ├── pages/
-│   │   ├── routes/
-│   │   └── types/
-│   └── public/
-└── docs/
-Local Development
-Backend
 
 Open the backend project in IntelliJ IDEA.
 
