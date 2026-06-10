@@ -49,6 +49,17 @@ Completed MVP features:
 - H2 database for development
 - PostgreSQL-ready architecture
 
+## Local PostgreSQL Setup
+
+The backend uses PostgreSQL for local development.
+
+Default local database:
+
+Database: socialcommunitymaker
+Host: localhost
+Port: 5432
+Username: postgres
+
 ## Main Features
 
 ### Authentication
@@ -119,7 +130,6 @@ Future Improvements
 
 Planned improvements:
 
-PostgreSQL database setup
 Real JWT filter/security context
 Profile pages
 Community admin tools
