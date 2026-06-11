@@ -126,6 +126,94 @@ The project currently uses H2 for local development.
 
 The app is designed so it can later be moved to PostgreSQL for a more production-like setup.
 
+## Deployment Configuration
+
+Social Community Maker is prepared for deployment using environment variables for database, security, backend URL, frontend URL, and port configuration.
+
+### Backend Environment Variables
+
+The Spring Boot backend uses the following environment variables:
+
+```text
+POSTGRES_USER
+POSTGRES_PASSWORD
+JWT_SECRET
+FRONTEND_URL
+PORT
+```
+
+Local defaults are provided where safe.
+
+Example local backend configuration:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/socialcommunitymaker
+spring.datasource.username=${POSTGRES_USER:postgres}
+spring.datasource.password=${POSTGRES_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+server.port=${PORT:8080}
+
+app.frontend-url=${FRONTEND_URL:http://localhost:5173}
+app.jwt.secret=${JWT_SECRET:change-this-secret-key-change-this-secret-key-change-this-secret-key}
+```
+
+`POSTGRES_PASSWORD` should be set locally and should never be committed to GitHub.
+
+On Windows:
+
+```cmd
+setx POSTGRES_PASSWORD "your-local-postgres-password"
+setx POSTGRES_USER "postgres"
+```
+
+After setting environment variables, restart the terminal or restart IntelliJ.
+
+### Frontend Environment Variables
+
+The React/Vite frontend uses:
+
+```text
+VITE_API_BASE_URL
+```
+
+Local example:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+For deployment, this should point to the deployed backend API URL.
+
+Example:
+
+```env
+VITE_API_BASE_URL=https://your-backend-domain.com/api
+```
+
+### Local Build Commands
+
+Backend:
+
+```cmd
+cd backend
+mvnw.cmd clean package
+```
+
+Frontend:
+
+```cmd
+cd frontend
+npm run build
+```
+
+### Security Notes
+
+Do not commit real passwords, production JWT secrets, database URLs, or private credentials to GitHub.
+
+Use hosting provider environment variables for production values.
+
+
 Future Improvements
 
 Planned improvements:
@@ -140,3 +228,16 @@ Search communities
 Image uploads
 Notifications
 Deployment
+
+📫 Connect
+
+- [Deividas Strole](https://deividasstrole.com)
+- [LinkedIn](https://linkedin.com/in/deividas-strole)
+- [YouTube](https://youtube.com/@deividas-strole)
+- [Dev.to](https://dev.to/deividas-strole)
+- [Medium](https://medium.com/@deividas-strole)
+- [X](https://x.com/deividasstrole)
+
+⭐ If you enjoyed this project, consider starring the repository to support the work of **Deividas Strole**!
+
+© Deividas Strole. All rights reserved.
