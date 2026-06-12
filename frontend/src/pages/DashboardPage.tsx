@@ -89,6 +89,13 @@ export default function DashboardPage() {
               >
                 Browse Communities
               </Link>
+
+              <Link
+                to="/edit-profile"
+                className="rounded-lg border border-slate-700 px-5 py-3 text-center font-semibold text-white hover:bg-slate-800"
+              >
+                Edit Profile
+              </Link>
             </div>
           </div>
         </div>

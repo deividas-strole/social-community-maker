@@ -5,9 +5,28 @@ import type { UserProfile } from './profileTypes'
 
 function UserProfilePage() {
   const { username } = useParams<{ username: string }>()
+
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null)
+
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+
+    if (!storedUser) {
+      setCurrentUsername(null)
+      return
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser) as { username?: string }
+      setCurrentUsername(parsedUser.username || null)
+    } catch {
+      setCurrentUsername(null)
+    }
+  }, [])
 
   useEffect(() => {
     async function loadProfile() {
@@ -67,16 +86,26 @@ function UserProfilePage() {
     )
   }
 
+  const isOwnProfile = currentUsername === profile.username
+
   return (
     <main className="min-h-[calc(100vh-73px)] px-6 py-10">
       <section className="mx-auto max-w-6xl">
         <div className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-4xl font-bold text-slate-200">
-                {profile.displayName?.charAt(0)?.toUpperCase() ||
-                  profile.username.charAt(0).toUpperCase()}
-              </div>
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={`${profile.displayName} avatar`}
+                  className="h-24 w-24 shrink-0 rounded-full border border-slate-700 object-cover"
+                />
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-4xl font-bold text-slate-200">
+                  {profile.displayName?.charAt(0)?.toUpperCase() ||
+                    profile.username.charAt(0).toUpperCase()}
+                </div>
+              )}
 
               <div>
                 <p className="text-sm uppercase tracking-[0.25em] text-slate-400">User Profile</p>
@@ -91,10 +120,21 @@ function UserProfilePage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3 lg:min-w-[360px]">
-              <ProfileStat label="Owned" value={profile.ownedCommunities.length} />
-              <ProfileStat label="Joined" value={profile.joinedCommunities.length} />
-              <ProfileStat label="Posts" value={profile.recentPosts.length} />
+            <div className="flex flex-col gap-4 lg:min-w-[360px]">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <ProfileStat label="Owned" value={profile.ownedCommunities.length} />
+                <ProfileStat label="Joined" value={profile.joinedCommunities.length} />
+                <ProfileStat label="Posts" value={profile.recentPosts.length} />
+              </div>
+
+              {isOwnProfile && (
+                <Link
+                  to="/edit-profile"
+                  className="rounded-lg bg-white px-5 py-3 text-center font-semibold text-slate-950 hover:bg-slate-200"
+                >
+                  Edit Profile
+                </Link>
+              )}
             </div>
           </div>
 

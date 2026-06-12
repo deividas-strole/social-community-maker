@@ -9,6 +9,7 @@ import CommunitiesPage from './pages/CommunitiesPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import UserProfilePage from './features/profiles/UserProfilePage'
+import EditProfilePage from './features/profiles/EditProfilePage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/create-community" element={<CreateCommunityPage />} />
+            <Route path="/edit-profile" element={<EditProfilePage />} />
           </Route>
         </Route>
       </Routes>
