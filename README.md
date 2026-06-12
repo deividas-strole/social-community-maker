@@ -46,17 +46,23 @@ https://deividas-strole.github.io/social-community-maker/#/login
 https://deividas-strole.github.io/social-community-maker/#/register
 ```
 
-## Current Deployment Limitation
+## Live Deployment
 
-Only the frontend is currently deployed.
+Frontend:
 
-The Spring Boot backend and PostgreSQL database are not deployed yet. Because of that, API-powered features such as registration, login, dashboard data, communities, posts, comments, and likes will not fully work on the live GitHub Pages site until the backend is deployed.
+https://deividas-strole.github.io/social-community-maker/#/
 
-The next deployment step is to deploy the backend and PostgreSQL database, then update the frontend environment variable:
+Backend:
 
-```env
-VITE_API_BASE_URL=https://your-deployed-backend-url.com/api
-```
+https://social-community-maker-backend.onrender.com
+
+Health check:
+
+https://social-community-maker-backend.onrender.com/api/health
+
+Database:
+
+Hosted PostgreSQL database on Neon.
 
 ## Tech Stack
 
