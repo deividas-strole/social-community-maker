@@ -8,6 +8,7 @@ import CommunityPage from './pages/CommunityPage'
 import CommunitiesPage from './pages/CommunitiesPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
+import UserProfilePage from './features/profiles/UserProfilePage'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/communities" element={<CommunitiesPage />} />
           <Route path="/communities/:slug" element={<CommunityPage />} />
+          <Route path="/users/:username" element={<UserProfilePage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
