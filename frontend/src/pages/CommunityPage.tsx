@@ -439,8 +439,20 @@ function CommunityHeader({
 
         <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 lg:min-w-72">
           <p className="text-sm text-slate-400">Created by</p>
-          <p className="mt-1 font-semibold">{community.owner.displayName}</p>
-          <p className="text-sm text-slate-500">@{community.owner.username}</p>
+
+          <Link
+            to={`/users/${community.owner.username}`}
+            className="mt-1 block font-semibold hover:text-white hover:underline"
+          >
+            {community.owner.displayName}
+          </Link>
+
+          <Link
+            to={`/users/${community.owner.username}`}
+            className="text-sm text-slate-500 hover:text-slate-300 hover:underline"
+          >
+            @{community.owner.username}
+          </Link>
 
           <div className="mt-5 border-t border-slate-800 pt-5">
             {community.currentUserRole ? (
@@ -672,8 +684,19 @@ function PostCard({
     <article className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
       <div className="flex flex-col justify-between gap-3 sm:flex-row">
         <div>
-          <p className="font-semibold">{post.author.displayName}</p>
-          <p className="text-sm text-slate-500">@{post.author.username}</p>
+          <Link
+            to={`/users/${post.author.username}`}
+            className="font-semibold hover:text-white hover:underline"
+          >
+            {post.author.displayName}
+          </Link>
+
+          <Link
+            to={`/users/${post.author.username}`}
+            className="block text-sm text-slate-500 hover:text-slate-300 hover:underline"
+          >
+            @{post.author.username}
+          </Link>
         </div>
 
         <div className="flex items-start gap-3">
@@ -757,8 +780,19 @@ function CommentSection({
             <div key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900 p-4">
               <div className="flex flex-col justify-between gap-2 sm:flex-row">
                 <div>
-                  <p className="text-sm font-semibold">{comment.author.displayName}</p>
-                  <p className="text-xs text-slate-500">@{comment.author.username}</p>
+                  <Link
+                    to={`/users/${comment.author.username}`}
+                    className="text-sm font-semibold hover:text-white hover:underline"
+                  >
+                    {comment.author.displayName}
+                  </Link>
+
+                  <Link
+                    to={`/users/${comment.author.username}`}
+                    className="block text-xs text-slate-500 hover:text-slate-300 hover:underline"
+                  >
+                    @{comment.author.username}
+                  </Link>
                 </div>
 
                 <div className="flex items-start gap-3">
