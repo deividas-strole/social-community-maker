@@ -99,4 +99,16 @@ public class User {
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
 }

@@ -1,9 +1,7 @@
 package com.socialcommunitymaker.backend.profile;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/users")
 @RestController
@@ -18,5 +16,13 @@ public class UserProfileController {
     @GetMapping("/{username}")
     public UserProfileResponse getProfileByUsername(@PathVariable String username) {
         return userProfileService.getProfileByUsername(username);
+    }
+
+    @PutMapping("/me/profile")
+    public UserProfileResponse updateCurrentUserProfile(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        return userProfileService.updateCurrentUserProfile(authorizationHeader, request);
     }
 }

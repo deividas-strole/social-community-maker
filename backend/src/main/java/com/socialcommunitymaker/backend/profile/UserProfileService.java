@@ -11,6 +11,7 @@ import com.socialcommunitymaker.backend.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.socialcommunitymaker.backend.security.JwtService;
 
 import java.util.List;
 
@@ -21,17 +22,19 @@ public class UserProfileService {
     private final CommunityRepository communityRepository;
     private final CommunityMemberRepository communityMemberRepository;
     private final PostRepository postRepository;
+    private final JwtService jwtService;
 
     public UserProfileService(
             UserRepository userRepository,
             CommunityRepository communityRepository,
             CommunityMemberRepository communityMemberRepository,
-            PostRepository postRepository
+            PostRepository postRepository, JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.communityMemberRepository = communityMemberRepository;
         this.postRepository = postRepository;
+        this.jwtService = jwtService;
     }
 
     public UserProfileResponse getProfileByUsername(String username) {
@@ -98,5 +101,57 @@ public class UserProfileService {
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
+    }
+
+    public UserProfileResponse updateCurrentUserProfile(
+            String authorizationHeader,
+            UpdateProfileRequest request
+    ) {
+        User user = getCurrentUserFromAuthorizationHeader(authorizationHeader);
+
+        user.setDisplayName(request.displayName().trim());
+
+        if (request.bio() == null || request.bio().trim().isEmpty()) {
+            user.setBio(null);
+        } else {
+            user.setBio(request.bio().trim());
+        }
+
+        if (request.avatarUrl() == null || request.avatarUrl().trim().isEmpty()) {
+            user.setAvatarUrl(null);
+        } else {
+            user.setAvatarUrl(request.avatarUrl().trim());
+        }
+
+        User savedUser = userRepository.save(user);
+
+        return getProfileByUsername(savedUser.getUsername());
+    }
+
+    private User getCurrentUserFromAuthorizationHeader(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Missing or invalid Authorization header"
+            );
+        }
+
+        String token = authorizationHeader.substring(7);
+        String email = jwtService.extractEmail(token);
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid token"
+                ));
+
+        if (!jwtService.isTokenValid(token, user)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid or expired token"
+            );
+        }
+
+        return user;
     }
 }
