@@ -131,12 +131,21 @@ export default function CommunitiesPage() {
                 <div className="mt-6 flex flex-col justify-between gap-4 border-t border-slate-800 pt-5 sm:flex-row sm:items-center">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Created by</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-300">
-                      {community.owner.displayName}
-                    </p>
-                    <p className="text-xs text-slate-500">@{community.owner.username}</p>
-                  </div>
 
+                    <Link
+                      to={`/users/${community.owner.username}`}
+                      className="mt-1 block text-sm font-semibold text-slate-300 hover:text-white hover:underline"
+                    >
+                      {community.owner.displayName}
+                    </Link>
+
+                    <Link
+                      to={`/users/${community.owner.username}`}
+                      className="text-xs text-slate-500 hover:text-slate-300 hover:underline"
+                    >
+                      @{community.owner.username}
+                    </Link>
+                  </div>
                   <Link
                     to={`/communities/${community.slug}`}
                     className="rounded-lg bg-white px-5 py-3 text-center text-sm font-semibold text-slate-950 hover:bg-slate-200"
