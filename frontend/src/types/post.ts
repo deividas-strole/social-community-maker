@@ -9,6 +9,7 @@ export type Post = {
   communityId: number
   author: PostAuthor
   content: string
+  imageUrl: string | null
   likeCount: number
   commentCount: number
   likedByCurrentUser: boolean
@@ -18,4 +19,5 @@ export type Post = {
 
 export type CreatePostRequest = {
   content: string
+  imageUrl?: string
 }

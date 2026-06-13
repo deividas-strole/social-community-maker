@@ -19,6 +19,10 @@ export type LikeResponse = {
   likeCount: number
 }
 
+export type ImageUploadResponse = {
+  imageUrl: string
+}
+
 export async function createPost(communityId: number, data: CreatePostRequest): Promise<Post> {
   const token = getAuthToken()
 
@@ -31,6 +35,21 @@ export async function createPost(communityId: number, data: CreatePostRequest): 
       },
     }
   )
+
+  return response.data
+}
+
+export async function uploadPostImage(file: File): Promise<ImageUploadResponse> {
+  const token = getAuthToken()
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await axios.post<ImageUploadResponse>(`${API_BASE_URL}/images/post`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
   return response.data
 }

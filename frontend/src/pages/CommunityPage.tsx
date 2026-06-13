@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { getCommunityBySlug, joinCommunity, leaveCommunity } from '../api/communityApi'
-import { createPost, deletePost, getCommunityPosts, likePost, unlikePost } from '../api/postApi'
+import {
+  createPost,
+  deletePost,
+  getCommunityPosts,
+  likePost,
+  unlikePost,
+  uploadPostImage,
+} from '../api/postApi'
 import { createComment, deleteComment, getPostComments } from '../api/commentApi'
 import type { Community } from '../types/community'
 import type { Post } from '../types/post'
@@ -15,9 +22,25 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [commentsByPostId, setCommentsByPostId] = useState<Record<number, Comment[]>>({})
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({})
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+
+  const [currentUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('user')
+
+    if (!storedUser) {
+      return null
+    }
+
+    try {
+      return JSON.parse(storedUser) as User
+    } catch {
+      return null
+    }
+  })
 
   const [postContent, setPostContent] = useState('')
+  const [selectedPostImageFile, setSelectedPostImageFile] = useState<File | null>(null)
+  const [postImagePreviewUrl, setPostImagePreviewUrl] = useState('')
+
   const [error, setError] = useState('')
   const [postError, setPostError] = useState('')
   const [commentError, setCommentError] = useState('')
@@ -27,18 +50,6 @@ export default function CommunityPage() {
   const [isSubmittingPost, setIsSubmittingPost] = useState(false)
   const [isSubmittingCommentPostId, setIsSubmittingCommentPostId] = useState<number | null>(null)
   const [isMembershipLoading, setIsMembershipLoading] = useState(false)
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-
-    if (storedUser) {
-      try {
-        setCurrentUser(JSON.parse(storedUser) as User)
-      } catch {
-        setCurrentUser(null)
-      }
-    }
-  }, [])
 
   async function loadCommentsForPosts(loadedPosts: Post[]) {
     const commentEntries = await Promise.all(
@@ -74,9 +85,26 @@ export default function CommunityPage() {
   }
 
   useEffect(() => {
-    reloadCommunityAndPosts()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void reloadCommunityAndPosts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
+
+  function handlePostImageFileChange(file: File | null) {
+    setSelectedPostImageFile(file)
+
+    if (!file) {
+      setPostImagePreviewUrl('')
+      return
+    }
+
+    setPostImagePreviewUrl(URL.createObjectURL(file))
+  }
+
+  function clearSelectedPostImage() {
+    setSelectedPostImageFile(null)
+    setPostImagePreviewUrl('')
+  }
 
   const handleJoinCommunity = async () => {
     if (!community) {
@@ -139,8 +167,16 @@ export default function CommunityPage() {
     setIsSubmittingPost(true)
 
     try {
+      let imageUrl = ''
+
+      if (selectedPostImageFile) {
+        const uploadResponse = await uploadPostImage(selectedPostImageFile)
+        imageUrl = uploadResponse.imageUrl
+      }
+
       const newPost = await createPost(community.id, {
         content: trimmedContent,
+        imageUrl,
       })
 
       setPosts((currentPosts) => [newPost, ...currentPosts])
@@ -149,6 +185,7 @@ export default function CommunityPage() {
         [newPost.id]: [],
       }))
       setPostContent('')
+      clearSelectedPostImage()
     } catch {
       setPostError('Post could not be created. Please join the community and try again.')
     } finally {
@@ -355,7 +392,10 @@ export default function CommunityPage() {
           postContent={postContent}
           postError={postError}
           isSubmittingPost={isSubmittingPost}
+          postImagePreviewUrl={postImagePreviewUrl}
           onPostContentChange={setPostContent}
+          onPostImageFileChange={handlePostImageFileChange}
+          onClearPostImage={clearSelectedPostImage}
           onCreatePost={handleCreatePost}
         />
 
@@ -512,7 +552,10 @@ type CreatePostPanelProps = {
   postContent: string
   postError: string
   isSubmittingPost: boolean
+  postImagePreviewUrl: string
   onPostContentChange: (value: string) => void
+  onPostImageFileChange: (file: File | null) => void
+  onClearPostImage: () => void
   onCreatePost: (event: { preventDefault: () => void }) => void
 }
 
@@ -522,7 +565,10 @@ function CreatePostPanel({
   postContent,
   postError,
   isSubmittingPost,
+  postImagePreviewUrl,
   onPostContentChange,
+  onPostImageFileChange,
+  onClearPostImage,
   onCreatePost,
 }: CreatePostPanelProps) {
   return (
@@ -546,6 +592,40 @@ function CreatePostPanel({
             onChange={(event) => onPostContentChange(event.target.value)}
             placeholder="Share something with the community..."
           />
+
+          <div className="mt-4">
+            <label className="block text-sm font-semibold text-slate-300" htmlFor="postImage">
+              Add image
+            </label>
+
+            <input
+              id="postImage"
+              type="file"
+              accept="image/*"
+              className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-md file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-slate-200"
+              onChange={(event) => onPostImageFileChange(event.target.files?.[0] || null)}
+            />
+
+            <p className="mt-2 text-xs text-slate-500">Optional. Maximum image size: 2MB.</p>
+
+            {postImagePreviewUrl && (
+              <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
+                <img
+                  src={postImagePreviewUrl}
+                  alt="Post preview"
+                  className="max-h-80 w-full rounded-lg object-cover"
+                />
+
+                <button
+                  type="button"
+                  onClick={onClearPostImage}
+                  className="mt-3 text-sm font-semibold text-red-300 hover:text-red-200"
+                >
+                  Remove image
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             className="mt-4 rounded-lg bg-white px-5 py-3 font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
@@ -716,6 +796,14 @@ function PostCard({
       </div>
 
       <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
+
+      {post.imageUrl && (
+        <img
+          src={post.imageUrl}
+          alt="Post attachment"
+          className="mt-5 max-h-[500px] w-full rounded-xl border border-slate-800 object-cover"
+        />
+      )}
 
       <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
         <button
