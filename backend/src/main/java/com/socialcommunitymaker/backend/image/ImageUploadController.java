@@ -21,4 +21,12 @@ public class ImageUploadController {
     ) {
         return imageUploadService.uploadAvatar(authorizationHeader, file);
     }
+
+    @PostMapping("/post")
+    public ImageUploadResponse uploadPostImage(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestParam("file") MultipartFile file
+    ) {
+        return imageUploadService.uploadPostImage(authorizationHeader, file);
+    }
 }

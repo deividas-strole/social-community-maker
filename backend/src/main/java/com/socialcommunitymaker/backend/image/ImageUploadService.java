@@ -125,4 +125,31 @@ public class ImageUploadService {
 
         return user;
     }
+
+    public ImageUploadResponse uploadPostImage(
+            String authorizationHeader,
+            MultipartFile file
+    ) {
+        getCurrentUserFromAuthorizationHeader(authorizationHeader);
+        validateImageFile(file);
+
+        try {
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    Map.of(
+                            "folder", "social-community-maker/posts",
+                            "resource_type", "image"
+                    )
+            );
+
+            String secureUrl = uploadResult.get("secure_url").toString();
+
+            return new ImageUploadResponse(secureUrl);
+        } catch (IOException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Image upload failed"
+            );
+        }
+    }
 }

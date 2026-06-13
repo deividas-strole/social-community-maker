@@ -8,6 +8,7 @@ public record ProfilePostResponse(
         String communityName,
         String communitySlug,
         String content,
+        String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

@@ -98,6 +98,7 @@ public class UserProfileService {
                 post.getCommunity().getName(),
                 post.getCommunity().getSlug(),
                 post.getContent(),
+                post.getImageUrl(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );

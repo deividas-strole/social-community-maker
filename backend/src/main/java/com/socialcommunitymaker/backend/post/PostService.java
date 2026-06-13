@@ -65,10 +65,17 @@ public class PostService {
 
         String content = request.content().trim();
 
+        String imageUrl = null;
+
+        if (request.imageUrl() != null && !request.imageUrl().trim().isEmpty()) {
+            imageUrl = request.imageUrl().trim();
+        }
+
         Post post = new Post(
                 community,
                 currentUser,
-                content
+                content,
+                imageUrl
         );
 
         Post savedPost = postRepository.save(post);

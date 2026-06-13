@@ -25,6 +25,9 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(length = 1000)
+    private String imageUrl;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -37,10 +40,11 @@ public class Post {
     public Post() {
     }
 
-    public Post(Community community, User author, String content) {
+    public Post(Community community, User author, String content, String imageUrl) {
         this.community = community;
         this.author = author;
         this.content = content;
+        this.imageUrl = imageUrl;
     }
 
     @PrePersist
@@ -69,6 +73,10 @@ public class Post {
 
     public String getContent() {
         return content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public LocalDateTime getCreatedAt() {
