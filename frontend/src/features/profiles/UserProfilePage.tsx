@@ -8,6 +8,7 @@ function UserProfilePage() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [currentUsername, setCurrentUsername] = useState<string | null>(null)
+  const [avatarFailed, setAvatarFailed] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -42,6 +43,7 @@ function UserProfilePage() {
 
         const data = await getUserProfile(username)
         setProfile(data)
+        setAvatarFailed(false)
       } catch (error) {
         console.error(error)
         setErrorMessage('User profile could not be loaded.')
@@ -94,11 +96,12 @@ function UserProfilePage() {
         <div className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              {profile.avatarUrl ? (
+              {profile.avatarUrl && !avatarFailed ? (
                 <img
                   src={profile.avatarUrl}
                   alt={`${profile.displayName} avatar`}
                   className="h-24 w-24 shrink-0 rounded-full border border-slate-700 object-cover"
+                  onError={() => setAvatarFailed(true)}
                 />
               ) : (
                 <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-4xl font-bold text-slate-200">
