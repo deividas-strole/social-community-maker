@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { getCurrentUser } from '../../api/authApi'
-import { getUserProfile, updateMyProfile } from './profileApi'
+import { getUserProfile, updateMyProfile, uploadMyAvatar } from './profileApi'
 import type { UserProfile } from './profileTypes'
 
 function EditProfilePage() {
@@ -11,6 +11,10 @@ function EditProfilePage() {
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
+
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState('')
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -47,6 +51,44 @@ function EditProfilePage() {
 
     loadProfile()
   }, [navigate])
+
+  function handleAvatarFileChange(file: File | null) {
+    setSelectedAvatarFile(file)
+
+    if (!file) {
+      setAvatarPreviewUrl('')
+      return
+    }
+
+    setAvatarPreviewUrl(URL.createObjectURL(file))
+  }
+
+  async function handleAvatarUpload() {
+    if (!selectedAvatarFile) {
+      setErrorMessage('Please choose an avatar image first.')
+      return
+    }
+
+    try {
+      setIsUploadingAvatar(true)
+      setErrorMessage('')
+      setSuccessMessage('')
+
+      const updatedProfile = await uploadMyAvatar(selectedAvatarFile)
+
+      setProfile(updatedProfile)
+      setAvatarUrl(updatedProfile.avatarUrl || '')
+      setSelectedAvatarFile(null)
+      setAvatarPreviewUrl('')
+
+      setSuccessMessage('Avatar uploaded successfully.')
+    } catch (error) {
+      console.error(error)
+      setErrorMessage('Avatar could not be uploaded. Please use an image under 2MB.')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
 
   async function handleSubmit(event: { preventDefault: () => void }) {
     event.preventDefault()
@@ -127,8 +169,8 @@ function EditProfilePage() {
           <h1 className="mt-3 text-4xl font-bold tracking-tight">Edit Profile</h1>
 
           <p className="mt-3 max-w-2xl text-slate-300">
-            Update your public profile information. Image uploads will be added later; for now, you
-            can use an avatar image URL.
+            Update your public profile information. You can upload an avatar image or manually use
+            an avatar image URL.
           </p>
 
           {errorMessage && (
@@ -181,6 +223,55 @@ function EditProfilePage() {
             </div>
 
             <div>
+              <label className="block text-sm font-semibold text-slate-300" htmlFor="avatarFile">
+                Upload Avatar Image
+              </label>
+
+              <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 text-2xl font-bold text-slate-200">
+                  {avatarPreviewUrl ? (
+                    <img
+                      src={avatarPreviewUrl}
+                      alt="Avatar preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Current avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    displayName.charAt(0).toUpperCase() || '?'
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <input
+                    id="avatarFile"
+                    type="file"
+                    accept="image/*"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-md file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-slate-200"
+                    onChange={(event) => handleAvatarFileChange(event.target.files?.[0] || null)}
+                  />
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    Upload a JPG, PNG, GIF, or WebP image. Maximum size: 2MB.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleAvatarUpload}
+                    disabled={!selectedAvatarFile || isUploadingAvatar}
+                    className="mt-3 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isUploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-semibold text-slate-300" htmlFor="avatarUrl">
                 Avatar URL
               </label>
@@ -195,7 +286,7 @@ function EditProfilePage() {
               />
 
               <p className="mt-2 text-xs text-slate-500">
-                Optional. Direct image uploads will be added later.
+                Optional. If you upload an avatar image, this field will update automatically.
               </p>
             </div>
 

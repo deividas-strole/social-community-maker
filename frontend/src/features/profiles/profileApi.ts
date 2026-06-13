@@ -26,3 +26,18 @@ export async function updateMyProfile(data: UpdateProfileRequest): Promise<UserP
 
   return response.data
 }
+
+export async function uploadMyAvatar(file: File): Promise<UserProfile> {
+  const token = localStorage.getItem('token')
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await axios.post<UserProfile>(`${API_BASE_URL}/images/avatar`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
+}
