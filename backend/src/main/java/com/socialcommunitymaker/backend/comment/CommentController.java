@@ -30,6 +30,15 @@ public class CommentController {
         return commentService.getPostComments(postId);
     }
 
+    @PutMapping("/api/comments/{commentId}")
+    public CommentResponse updateComment(
+            @PathVariable Long commentId,
+            @RequestHeader("Authorization") String authorizationHeader,
+            @Valid @RequestBody UpdateCommentRequest request
+    ) {
+        return commentService.updateComment(commentId, authorizationHeader, request);
+    }
+
     @DeleteMapping("/api/comments/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(

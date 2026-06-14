@@ -119,6 +119,59 @@ public class PostService {
                 .toList();
     }
 
+    public PostResponse updatePost(
+            Long postId,
+            String authorizationHeader,
+            UpdatePostRequest request
+    ) {
+        User currentUser = getCurrentUserFromAuthorizationHeader(authorizationHeader);
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Post not found"
+                ));
+
+        if (post.getDeletedAt() != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Post not found"
+            );
+        }
+
+        boolean isAuthor = post.getAuthor().getId().equals(currentUser.getId());
+
+        if (!isAuthor) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only the post author can edit this post"
+            );
+        }
+
+        String content = request.content().trim();
+
+        String imageUrl = null;
+
+        if (request.imageUrl() != null && !request.imageUrl().trim().isEmpty()) {
+            imageUrl = request.imageUrl().trim();
+        }
+
+        post.updateContentAndImage(content, imageUrl);
+
+        Post savedPost = postRepository.save(post);
+
+        int likeCount = postLikeRepository.countByPost(savedPost);
+        int commentCount = commentRepository.countByPostAndDeletedAtIsNull(savedPost);
+        boolean likedByCurrentUser = postLikeRepository.existsByPostAndUser(savedPost, currentUser);
+
+        return PostResponse.from(
+                savedPost,
+                likeCount,
+                commentCount,
+                likedByCurrentUser
+        );
+    }
+
     public void deletePost(Long postId, String authorizationHeader) {
         User currentUser = getCurrentUserFromAuthorizationHeader(authorizationHeader);
 

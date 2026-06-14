@@ -33,6 +33,15 @@ public class PostController {
         return postService.getCommunityPosts(communityId, authorizationHeader);
     }
 
+    @PutMapping("/api/posts/{postId}")
+    public PostResponse updatePost(
+            @PathVariable Long postId,
+            @RequestHeader("Authorization") String authorizationHeader,
+            @Valid @RequestBody UpdatePostRequest request
+    ) {
+        return postService.updatePost(postId, authorizationHeader, request);
+    }
+
     @DeleteMapping("/api/posts/{postId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(

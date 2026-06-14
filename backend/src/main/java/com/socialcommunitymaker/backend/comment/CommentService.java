@@ -96,6 +96,44 @@ public class CommentService {
                 .toList();
     }
 
+    public CommentResponse updateComment(
+            Long commentId,
+            String authorizationHeader,
+            UpdateCommentRequest request
+    ) {
+        User currentUser = getCurrentUserFromAuthorizationHeader(authorizationHeader);
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Comment not found"
+                ));
+
+        if (comment.getDeletedAt() != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Comment not found"
+            );
+        }
+
+        boolean isAuthor = comment.getAuthor().getId().equals(currentUser.getId());
+
+        if (!isAuthor) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only the comment author can edit this comment"
+            );
+        }
+
+        String content = request.content().trim();
+
+        comment.updateContent(content);
+
+        Comment savedComment = commentRepository.save(comment);
+
+        return CommentResponse.from(savedComment);
+    }
+
     public void deleteComment(Long commentId, String authorizationHeader) {
         User currentUser = getCurrentUserFromAuthorizationHeader(authorizationHeader);
 

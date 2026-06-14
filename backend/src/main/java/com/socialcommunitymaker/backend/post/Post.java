@@ -94,4 +94,9 @@ public class Post {
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updateContentAndImage(String content, String imageUrl) {
+        this.content = content;
+        this.imageUrl = imageUrl;
+    }
 }
