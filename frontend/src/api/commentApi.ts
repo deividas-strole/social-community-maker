@@ -13,6 +13,10 @@ function getAuthToken(): string {
   return token
 }
 
+export type UpdateCommentRequest = {
+  content: string
+}
+
 export async function getPostComments(postId: number): Promise<Comment[]> {
   const response = await axios.get<Comment[]>(`${API_BASE_URL}/posts/${postId}/comments`)
 
@@ -23,6 +27,21 @@ export async function createComment(postId: number, data: CreateCommentRequest):
   const token = getAuthToken()
 
   const response = await axios.post<Comment>(`${API_BASE_URL}/posts/${postId}/comments`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
+}
+
+export async function updateComment(
+  commentId: number,
+  data: UpdateCommentRequest
+): Promise<Comment> {
+  const token = getAuthToken()
+
+  const response = await axios.put<Comment>(`${API_BASE_URL}/comments/${commentId}`, data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

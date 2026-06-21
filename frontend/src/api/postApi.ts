@@ -23,6 +23,11 @@ export type ImageUploadResponse = {
   imageUrl: string
 }
 
+export type UpdatePostRequest = {
+  content: string
+  imageUrl?: string
+}
+
 export async function createPost(communityId: number, data: CreatePostRequest): Promise<Post> {
   const token = getAuthToken()
 
@@ -63,6 +68,18 @@ export async function getCommunityPosts(communityId: number): Promise<Post[]> {
           Authorization: `Bearer ${token}`,
         }
       : undefined,
+  })
+
+  return response.data
+}
+
+export async function updatePost(postId: number, data: UpdatePostRequest): Promise<Post> {
+  const token = getAuthToken()
+
+  const response = await axios.put<Post>(`${API_BASE_URL}/posts/${postId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
 
   return response.data

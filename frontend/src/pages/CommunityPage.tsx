@@ -8,8 +8,9 @@ import {
   likePost,
   unlikePost,
   uploadPostImage,
+  updatePost,
 } from '../api/postApi'
-import { createComment, deleteComment, getPostComments } from '../api/commentApi'
+import { createComment, deleteComment, getPostComments, updateComment } from '../api/commentApi'
 import type { Community } from '../types/community'
 import type { Post } from '../types/post'
 import type { User } from '../types/auth'
