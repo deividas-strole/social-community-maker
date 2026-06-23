@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { Comment, CreateCommentRequest } from '../types/comment'
+import type { Post } from '../types/post.ts'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -15,6 +16,11 @@ function getAuthToken(): string {
 
 export type UpdateCommentRequest = {
   content: string
+}
+
+export type UpdatePostRequest = {
+  content: string
+  imageUrl?: string
 }
 
 export async function getPostComments(postId: number): Promise<Comment[]> {
@@ -58,4 +64,16 @@ export async function deleteComment(commentId: number): Promise<void> {
       Authorization: `Bearer ${token}`,
     },
   })
+}
+
+export async function updatePost(postId: number, data: UpdatePostRequest): Promise<Post> {
+  const token = getAuthToken()
+
+  const response = await axios.put<Post>(`${API_BASE_URL}/posts/${postId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
 }

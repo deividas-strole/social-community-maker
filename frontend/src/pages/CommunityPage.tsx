@@ -42,6 +42,13 @@ export default function CommunityPage() {
   const [selectedPostImageFile, setSelectedPostImageFile] = useState<File | null>(null)
   const [postImagePreviewUrl, setPostImagePreviewUrl] = useState('')
 
+  const [editingPostId, setEditingPostId] = useState<number | null>(null)
+  const [editingPostContent, setEditingPostContent] = useState('')
+  const [editingPostImageUrl, setEditingPostImageUrl] = useState('')
+
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [editingCommentContent, setEditingCommentContent] = useState('')
+
   const [error, setError] = useState('')
   const [postError, setPostError] = useState('')
   const [commentError, setCommentError] = useState('')
@@ -194,6 +201,46 @@ export default function CommunityPage() {
     }
   }
 
+  function startEditingPost(post: Post) {
+    setEditingPostId(post.id)
+    setEditingPostContent(post.content)
+    setEditingPostImageUrl(post.imageUrl || '')
+    setPostError('')
+  }
+
+  function cancelEditingPost() {
+    setEditingPostId(null)
+    setEditingPostContent('')
+    setEditingPostImageUrl('')
+  }
+
+  async function handleUpdatePost(postId: number, event: { preventDefault: () => void }) {
+    event.preventDefault()
+    setPostError('')
+
+    const trimmedContent = editingPostContent.trim()
+
+    if (!trimmedContent) {
+      setPostError('Post cannot be empty.')
+      return
+    }
+
+    try {
+      const updatedPost = await updatePost(postId, {
+        content: trimmedContent,
+        imageUrl: editingPostImageUrl.trim(),
+      })
+
+      setPosts((currentPosts) =>
+        currentPosts.map((post) => (post.id === postId ? updatedPost : post))
+      )
+
+      cancelEditingPost()
+    } catch {
+      setPostError('Post could not be updated.')
+    }
+  }
+
   const handleDeletePost = async (postId: number) => {
     const confirmed = window.confirm('Delete this post?')
 
@@ -293,6 +340,53 @@ export default function CommunityPage() {
     }
   }
 
+  function startEditingComment(comment: Comment) {
+    setEditingCommentId(comment.id)
+    setEditingCommentContent(comment.content)
+    setCommentError('')
+  }
+
+  function cancelEditingComment() {
+    setEditingCommentId(null)
+    setEditingCommentContent('')
+  }
+
+  async function handleUpdateComment(commentId: number, event: { preventDefault: () => void }) {
+    event.preventDefault()
+    setCommentError('')
+
+    const trimmedContent = editingCommentContent.trim()
+
+    if (!trimmedContent) {
+      setCommentError('Comment cannot be empty.')
+      return
+    }
+
+    try {
+      const updatedComment = await updateComment(commentId, {
+        content: trimmedContent,
+      })
+
+      setCommentsByPostId((currentComments) => {
+        const nextComments = { ...currentComments }
+
+        for (const postId of Object.keys(nextComments)) {
+          const numericPostId = Number(postId)
+
+          nextComments[numericPostId] = nextComments[numericPostId].map((comment) =>
+            comment.id === commentId ? updatedComment : comment
+          )
+        }
+
+        return nextComments
+      })
+
+      cancelEditingComment()
+    } catch {
+      setCommentError('Comment could not be updated.')
+    }
+  }
+
   const handleDeleteComment = async (postId: number, commentId: number) => {
     const confirmed = window.confirm('Delete this comment?')
 
@@ -318,6 +412,14 @@ export default function CommunityPage() {
     }
   }
 
+  function canEditPost(post: Post) {
+    if (!currentUser) {
+      return false
+    }
+
+    return post.author.id === currentUser.id
+  }
+
   function canDeletePost(post: Post) {
     if (!currentUser || !community) {
       return false
@@ -327,6 +429,14 @@ export default function CommunityPage() {
     const isCommunityOwner = community.owner.id === currentUser.id
 
     return isAuthor || isCommunityOwner
+  }
+
+  function canEditComment(comment: Comment) {
+    if (!currentUser) {
+      return false
+    }
+
+    return comment.author.id === currentUser.id
   }
 
   function canDeleteComment(comment: Comment) {
@@ -407,10 +517,26 @@ export default function CommunityPage() {
           commentError={commentError}
           canCreatePost={canCreatePost}
           isSubmittingCommentPostId={isSubmittingCommentPostId}
+          editingPostId={editingPostId}
+          editingPostContent={editingPostContent}
+          editingPostImageUrl={editingPostImageUrl}
+          editingCommentId={editingCommentId}
+          editingCommentContent={editingCommentContent}
+          canEditPost={canEditPost}
           canDeletePost={canDeletePost}
+          canEditComment={canEditComment}
           canDeleteComment={canDeleteComment}
           onToggleLike={handleToggleLike}
+          onStartEditingPost={startEditingPost}
+          onCancelEditingPost={cancelEditingPost}
+          onEditingPostContentChange={setEditingPostContent}
+          onEditingPostImageUrlChange={setEditingPostImageUrl}
+          onUpdatePost={handleUpdatePost}
           onDeletePost={handleDeletePost}
+          onStartEditingComment={startEditingComment}
+          onCancelEditingComment={cancelEditingComment}
+          onEditingCommentContentChange={setEditingCommentContent}
+          onUpdateComment={handleUpdateComment}
           onCommentInputChange={handleCommentInputChange}
           onCreateComment={handleCreateComment}
           onDeleteComment={handleDeleteComment}
@@ -665,10 +791,26 @@ type FeedPanelProps = {
   commentError: string
   canCreatePost: boolean
   isSubmittingCommentPostId: number | null
+  editingPostId: number | null
+  editingPostContent: string
+  editingPostImageUrl: string
+  editingCommentId: number | null
+  editingCommentContent: string
+  canEditPost: (post: Post) => boolean
   canDeletePost: (post: Post) => boolean
+  canEditComment: (comment: Comment) => boolean
   canDeleteComment: (comment: Comment) => boolean
   onToggleLike: (post: Post) => void
+  onStartEditingPost: (post: Post) => void
+  onCancelEditingPost: () => void
+  onEditingPostContentChange: (value: string) => void
+  onEditingPostImageUrlChange: (value: string) => void
+  onUpdatePost: (postId: number, event: { preventDefault: () => void }) => void
   onDeletePost: (postId: number) => void
+  onStartEditingComment: (comment: Comment) => void
+  onCancelEditingComment: () => void
+  onEditingCommentContentChange: (value: string) => void
+  onUpdateComment: (commentId: number, event: { preventDefault: () => void }) => void
   onCommentInputChange: (postId: number, value: string) => void
   onCreateComment: (postId: number, event: { preventDefault: () => void }) => void
   onDeleteComment: (postId: number, commentId: number) => void
@@ -681,10 +823,26 @@ function FeedPanel({
   commentError,
   canCreatePost,
   isSubmittingCommentPostId,
+  editingPostId,
+  editingPostContent,
+  editingPostImageUrl,
+  editingCommentId,
+  editingCommentContent,
+  canEditPost,
   canDeletePost,
+  canEditComment,
   canDeleteComment,
   onToggleLike,
+  onStartEditingPost,
+  onCancelEditingPost,
+  onEditingPostContentChange,
+  onEditingPostImageUrlChange,
+  onUpdatePost,
   onDeletePost,
+  onStartEditingComment,
+  onCancelEditingComment,
+  onEditingCommentContentChange,
+  onUpdateComment,
   onCommentInputChange,
   onCreateComment,
   onDeleteComment,
@@ -717,10 +875,26 @@ function FeedPanel({
               commentInput={commentInputs[post.id] || ''}
               canCreatePost={canCreatePost}
               isSubmittingComment={isSubmittingCommentPostId === post.id}
+              isEditingPost={editingPostId === post.id}
+              editingPostContent={editingPostContent}
+              editingPostImageUrl={editingPostImageUrl}
+              editingCommentId={editingCommentId}
+              editingCommentContent={editingCommentContent}
+              canEditPost={canEditPost(post)}
               canDeletePost={canDeletePost(post)}
+              canEditComment={canEditComment}
               canDeleteComment={canDeleteComment}
               onToggleLike={() => onToggleLike(post)}
+              onStartEditingPost={() => onStartEditingPost(post)}
+              onCancelEditingPost={onCancelEditingPost}
+              onEditingPostContentChange={onEditingPostContentChange}
+              onEditingPostImageUrlChange={onEditingPostImageUrlChange}
+              onUpdatePost={(event) => onUpdatePost(post.id, event)}
               onDeletePost={() => onDeletePost(post.id)}
+              onStartEditingComment={onStartEditingComment}
+              onCancelEditingComment={onCancelEditingComment}
+              onEditingCommentContentChange={onEditingCommentContentChange}
+              onUpdateComment={onUpdateComment}
               onCommentInputChange={(value) => onCommentInputChange(post.id, value)}
               onCreateComment={(event) => onCreateComment(post.id, event)}
               onDeleteComment={(commentId) => onDeleteComment(post.id, commentId)}
@@ -738,10 +912,26 @@ type PostCardProps = {
   commentInput: string
   canCreatePost: boolean
   isSubmittingComment: boolean
+  isEditingPost: boolean
+  editingPostContent: string
+  editingPostImageUrl: string
+  editingCommentId: number | null
+  editingCommentContent: string
+  canEditPost: boolean
   canDeletePost: boolean
+  canEditComment: (comment: Comment) => boolean
   canDeleteComment: (comment: Comment) => boolean
   onToggleLike: () => void
+  onStartEditingPost: () => void
+  onCancelEditingPost: () => void
+  onEditingPostContentChange: (value: string) => void
+  onEditingPostImageUrlChange: (value: string) => void
+  onUpdatePost: (event: { preventDefault: () => void }) => void
   onDeletePost: () => void
+  onStartEditingComment: (comment: Comment) => void
+  onCancelEditingComment: () => void
+  onEditingCommentContentChange: (value: string) => void
+  onUpdateComment: (commentId: number, event: { preventDefault: () => void }) => void
   onCommentInputChange: (value: string) => void
   onCreateComment: (event: { preventDefault: () => void }) => void
   onDeleteComment: (commentId: number) => void
@@ -753,10 +943,26 @@ function PostCard({
   commentInput,
   canCreatePost,
   isSubmittingComment,
+  isEditingPost,
+  editingPostContent,
+  editingPostImageUrl,
+  editingCommentId,
+  editingCommentContent,
+  canEditPost,
   canDeletePost,
+  canEditComment,
   canDeleteComment,
   onToggleLike,
+  onStartEditingPost,
+  onCancelEditingPost,
+  onEditingPostContentChange,
+  onEditingPostImageUrlChange,
+  onUpdatePost,
   onDeletePost,
+  onStartEditingComment,
+  onCancelEditingComment,
+  onEditingCommentContentChange,
+  onUpdateComment,
   onCommentInputChange,
   onCreateComment,
   onDeleteComment,
@@ -785,6 +991,15 @@ function PostCard({
             {new Date(post.createdAt).toLocaleString()}
           </span>
 
+          {canEditPost && !isEditingPost && (
+            <button
+              onClick={onStartEditingPost}
+              className="text-xs font-semibold text-slate-300 hover:text-white"
+            >
+              Edit
+            </button>
+          )}
+
           {canDeletePost && (
             <button
               onClick={onDeletePost}
@@ -796,14 +1011,69 @@ function PostCard({
         </div>
       </div>
 
-      <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
+      {isEditingPost ? (
+        <form
+          onSubmit={onUpdatePost}
+          className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4"
+        >
+          <label
+            className="block text-sm font-semibold text-slate-300"
+            htmlFor={`edit-post-${post.id}`}
+          >
+            Edit post
+          </label>
 
-      {post.imageUrl && (
-        <img
-          src={post.imageUrl}
-          alt="Post attachment"
-          className="mt-5 max-h-[500px] w-full rounded-xl border border-slate-800 object-cover"
-        />
+          <textarea
+            id={`edit-post-${post.id}`}
+            className="mt-2 min-h-28 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
+            value={editingPostContent}
+            onChange={(event) => onEditingPostContentChange(event.target.value)}
+          />
+
+          <label
+            className="mt-4 block text-sm font-semibold text-slate-300"
+            htmlFor={`edit-post-image-${post.id}`}
+          >
+            Image URL
+          </label>
+
+          <input
+            id={`edit-post-image-${post.id}`}
+            className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
+            value={editingPostImageUrl}
+            onChange={(event) => onEditingPostImageUrlChange(event.target.value)}
+            placeholder="Optional image URL"
+          />
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="submit"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200"
+            >
+              Save
+            </button>
+
+            <button
+              type="button"
+              onClick={onCancelEditingPost}
+              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <p className="mt-4 whitespace-pre-wrap text-slate-200">{post.content}</p>
+
+          {post.imageUrl && (
+            <img
+              src={post.imageUrl}
+              alt="Post attachment"
+              className="mt-5 max-h-[500px] w-full rounded-xl border border-slate-800 object-cover"
+            />
+          )}
+        </>
       )}
 
       <div className="mt-5 flex items-center gap-4 text-sm text-slate-500">
@@ -827,7 +1097,14 @@ function PostCard({
         commentInput={commentInput}
         canCreatePost={canCreatePost}
         isSubmittingComment={isSubmittingComment}
+        editingCommentId={editingCommentId}
+        editingCommentContent={editingCommentContent}
+        canEditComment={canEditComment}
         canDeleteComment={canDeleteComment}
+        onStartEditingComment={onStartEditingComment}
+        onCancelEditingComment={onCancelEditingComment}
+        onEditingCommentContentChange={onEditingCommentContentChange}
+        onUpdateComment={onUpdateComment}
         onCommentInputChange={onCommentInputChange}
         onCreateComment={onCreateComment}
         onDeleteComment={onDeleteComment}
@@ -841,7 +1118,14 @@ type CommentSectionProps = {
   commentInput: string
   canCreatePost: boolean
   isSubmittingComment: boolean
+  editingCommentId: number | null
+  editingCommentContent: string
+  canEditComment: (comment: Comment) => boolean
   canDeleteComment: (comment: Comment) => boolean
+  onStartEditingComment: (comment: Comment) => void
+  onCancelEditingComment: () => void
+  onEditingCommentContentChange: (value: string) => void
+  onUpdateComment: (commentId: number, event: { preventDefault: () => void }) => void
   onCommentInputChange: (value: string) => void
   onCreateComment: (event: { preventDefault: () => void }) => void
   onDeleteComment: (commentId: number) => void
@@ -852,7 +1136,14 @@ function CommentSection({
   commentInput,
   canCreatePost,
   isSubmittingComment,
+  editingCommentId,
+  editingCommentContent,
+  canEditComment,
   canDeleteComment,
+  onStartEditingComment,
+  onCancelEditingComment,
+  onEditingCommentContentChange,
+  onUpdateComment,
   onCommentInputChange,
   onCreateComment,
   onDeleteComment,
@@ -865,44 +1156,86 @@ function CommentSection({
         <p className="mt-3 text-sm text-slate-500">No comments yet.</p>
       ) : (
         <div className="mt-4 grid gap-3">
-          {comments.map((comment) => (
-            <div key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-              <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                <div>
-                  <Link
-                    to={`/users/${comment.author.username}`}
-                    className="text-sm font-semibold hover:text-white hover:underline"
-                  >
-                    {comment.author.displayName}
-                  </Link>
+          {comments.map((comment) => {
+            const isEditingComment = editingCommentId === comment.id
 
-                  <Link
-                    to={`/users/${comment.author.username}`}
-                    className="block text-xs text-slate-500 hover:text-slate-300 hover:underline"
-                  >
-                    @{comment.author.username}
-                  </Link>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <span className="text-xs text-slate-500">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </span>
-
-                  {canDeleteComment(comment) && (
-                    <button
-                      onClick={() => onDeleteComment(comment.id)}
-                      className="text-xs font-semibold text-red-300 hover:text-red-200"
+            return (
+              <div key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+                <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                  <div>
+                    <Link
+                      to={`/users/${comment.author.username}`}
+                      className="text-sm font-semibold hover:text-white hover:underline"
                     >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </div>
+                      {comment.author.displayName}
+                    </Link>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">{comment.content}</p>
-            </div>
-          ))}
+                    <Link
+                      to={`/users/${comment.author.username}`}
+                      className="block text-xs text-slate-500 hover:text-slate-300 hover:underline"
+                    >
+                      @{comment.author.username}
+                    </Link>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="text-xs text-slate-500">
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </span>
+
+                    {canEditComment(comment) && !isEditingComment && (
+                      <button
+                        onClick={() => onStartEditingComment(comment)}
+                        className="text-xs font-semibold text-slate-300 hover:text-white"
+                      >
+                        Edit
+                      </button>
+                    )}
+
+                    {canDeleteComment(comment) && (
+                      <button
+                        onClick={() => onDeleteComment(comment.id)}
+                        className="text-xs font-semibold text-red-300 hover:text-red-200"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {isEditingComment ? (
+                  <form onSubmit={(event) => onUpdateComment(comment.id, event)} className="mt-3">
+                    <textarea
+                      className="min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-white"
+                      value={editingCommentContent}
+                      onChange={(event) => onEditingCommentContentChange(event.target.value)}
+                    />
+
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200"
+                      >
+                        Save
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={onCancelEditingComment}
+                        className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">
+                    {comment.content}
+                  </p>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
