@@ -37,8 +37,13 @@ export async function getMyCommunities(): Promise<MyCommunitiesResponse> {
   return response.data
 }
 
-export async function getPublicCommunities(): Promise<Community[]> {
-  const response = await axios.get<Community[]>(`${API_BASE_URL}/communities`)
+export async function getPublicCommunities(search = ''): Promise<Community[]> {
+  const params = search.trim() ? { search: search.trim() } : undefined
+
+  const response = await axios.get<Community[]>(`${API_BASE_URL}/communities`, {
+    params,
+  })
+
   return response.data
 }
 
