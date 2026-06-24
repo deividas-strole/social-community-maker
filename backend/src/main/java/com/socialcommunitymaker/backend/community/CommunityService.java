@@ -67,9 +67,26 @@ public class CommunityService {
         return CommunityResponse.from(savedCommunity, true, CommunityRole.OWNER);
     }
 
-    public List<CommunityResponse> getPublicCommunities() {
+    public List<CommunityResponse> getPublicCommunities(String search) {
+        String trimmedSearch = search == null ? "" : search.trim();
+
+        if (trimmedSearch.isEmpty()) {
+            return communityRepository
+                    .findByVisibilityOrderByCreatedAtDesc(CommunityVisibility.PUBLIC)
+                    .stream()
+                    .map(CommunityResponse::from)
+                    .toList();
+        }
+
         return communityRepository
-                .findByVisibilityOrderByCreatedAtDesc(CommunityVisibility.PUBLIC)
+                .findByVisibilityAndNameContainingIgnoreCaseOrVisibilityAndSlugContainingIgnoreCaseOrVisibilityAndDescriptionContainingIgnoreCaseOrderByCreatedAtDesc(
+                        CommunityVisibility.PUBLIC,
+                        trimmedSearch,
+                        CommunityVisibility.PUBLIC,
+                        trimmedSearch,
+                        CommunityVisibility.PUBLIC,
+                        trimmedSearch
+                )
                 .stream()
                 .map(CommunityResponse::from)
                 .toList();

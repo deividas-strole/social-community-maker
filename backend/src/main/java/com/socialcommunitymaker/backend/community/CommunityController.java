@@ -25,9 +25,18 @@ public class CommunityController {
         return communityService.createCommunity(authorizationHeader, request);
     }
 
+    @GetMapping("/me")
+    public MyCommunitiesResponse getMyCommunities(
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        return communityService.getMyCommunities(authorizationHeader);
+    }
+
     @GetMapping
-    public List<CommunityResponse> getPublicCommunities() {
-        return communityService.getPublicCommunities();
+    public List<CommunityResponse> getPublicCommunities(
+            @RequestParam(value = "search", required = false) String search
+    ) {
+        return communityService.getPublicCommunities(search);
     }
 
     @GetMapping("/{slug}")
@@ -36,13 +45,6 @@ public class CommunityController {
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
         return communityService.getCommunityBySlug(slug, authorizationHeader);
-    }
-
-    @GetMapping("/me")
-    public MyCommunitiesResponse getMyCommunities(
-            @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        return communityService.getMyCommunities(authorizationHeader);
     }
 
     @PostMapping("/{communityId}/join")

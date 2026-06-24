@@ -15,4 +15,13 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     List<Community> findByOwnerOrderByCreatedAtDesc(User owner);
 
     List<Community> findByVisibilityOrderByCreatedAtDesc(CommunityVisibility visibility);
+
+    List<Community> findByVisibilityAndNameContainingIgnoreCaseOrVisibilityAndSlugContainingIgnoreCaseOrVisibilityAndDescriptionContainingIgnoreCaseOrderByCreatedAtDesc(
+            CommunityVisibility nameVisibility,
+            String name,
+            CommunityVisibility slugVisibility,
+            String slug,
+            CommunityVisibility descriptionVisibility,
+            String description
+    );
 }
