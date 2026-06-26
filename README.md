@@ -62,7 +62,7 @@ https://social-community-maker-backend.onrender.com/api/health
 
 Database:
 
-Hosted PostgreSQL database on Neon.
+Hosted PostgreSQL database on Neon
 
 ## Tech Stack
 
