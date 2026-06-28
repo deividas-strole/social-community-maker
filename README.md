@@ -335,7 +335,8 @@ Planned improvements:
 * [Dev.to](https://dev.to/deividas-strole)
 * [Medium](https://medium.com/@deividas-strole)
 * [X](https://x.com/deividasstrole)
-
+* [Lake Apps](https://lakeapps.com)
+  
 If you enjoyed this project, consider starring the repository to support the work of **Deividas Strole**.
 
 © Deividas Strole. All rights reserved.
