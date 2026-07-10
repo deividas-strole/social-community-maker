@@ -2,7 +2,7 @@
 
 Social Community Maker is a full-stack social community platform built with React, TypeScript, Spring Boot, PostgreSQL, and JWT authentication.
 
-The project allows users to create communities, join public communities, publish posts, comment, like posts, and manage their activity through a dashboard.
+The project allows users to create communities, join public communities, publish posts, comment, like posts, and manage their activity through a dashboard
 
 ## Project Status
 
