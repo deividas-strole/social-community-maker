@@ -27,7 +27,7 @@ export default function HomePage() {
           {/*  Full-stack React + Spring Boot social platform*/}
           {/*</p>*/}
 
-          <h1 className="text-red-400 [-webkit-text-stroke:1px_black] max-w-4xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="text [-webkit-text-stroke:1px_black] max-w-4xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Build, join, and grow online communities.
           </h1>
 
