@@ -27,7 +27,7 @@ Completed MVP features:
 * Shared navigation/layout
 * Polished home, dashboard, browse, and community pages
 * PostgreSQL local development setup
-* GitHub Pages frontend deployment
+* GitHub Pages frontend deployment.
 
 ## Live Frontend
 
