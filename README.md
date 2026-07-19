@@ -6,7 +6,7 @@ The project allows users to create communities, join public communities, publish
 
 ## Project Status
 
-MVP in progress
+MVP in progress.
 
 Completed MVP features:
 
