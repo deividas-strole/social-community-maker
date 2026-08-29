@@ -29,7 +29,7 @@ Completed MVP features:
 * PostgreSQL local development setup
 * GitHub Pages frontend deployment
 
-## Live Frontend
+## Live Frontend.
 
 The frontend is deployed to GitHub Pages:
 
