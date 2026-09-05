@@ -4,7 +4,7 @@ Social Community Maker is a full-stack social community platform built with Reac
 
 The project allows users to create communities, join public communities, publish posts, comment, like posts, and manage their activity through a dashboard.
 
-## Project Status
+## Project Status:
 
 Post MVP in progress.
 
