@@ -8,7 +8,7 @@ The project allows users to create communities, join public communities, publish
 
 Post MVP in progress
 
-Completed MVP features
+Completed MVP features:
 
 * User registration
 * User login
