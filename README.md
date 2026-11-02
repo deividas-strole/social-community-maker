@@ -31,7 +31,7 @@ Completed MVP features:
 
 ## Live Frontend
 
-The frontend is deployed to GitHub Pages:
+The frontend is deployed to GitHub Pages
 
 ```text
 https://deividas-strole.github.io/social-community-maker/
